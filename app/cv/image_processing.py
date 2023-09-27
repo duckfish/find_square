@@ -4,7 +4,7 @@ from typing import List, Sequence, Tuple
 
 import cv2
 import numpy as np
-from math_processor import MathProcessor
+from cv.math_processor import MathProcessor
 
 
 class BaseImageProcessor:
@@ -52,45 +52,60 @@ class ImageGenerator(BaseImageProcessor):
         Add Gaussian noise to an image.
 
         Args:
-            image (numpy.ndarray): The input image.
+            image (np.ndarray): The input image.
             mean (int): Mean of the Gaussian noise. Default is 0.
             std (int): Standard deviation of the Gaussian noise. Default is 25.
 
         Returns:
-            numpy.ndarray: The image with added Gaussian noise.
+            np.ndarray: The image with added Gaussian noise.
         """
         noise = np.random.normal(mean, std, img.shape).astype(np.uint8)
         img_noisy = cv2.add(img, noise)
         return img_noisy
 
-    def _add_salt_and_pepper_noise(self, img, salt_prob=0.1, pepper_prob=0.06):
+    def _add_salt_and_pepper_noise(
+        self, img: np.ndarray, salt_prob: float = 0.1, pepper_prob: float = 0.06
+    ) -> np.ndarray:
         """
         Add salt and pepper noise to an img.
 
         Args:
-            img (numpy.ndarray): The input img.
+            img (np.ndarray): The input img.
             salt_prob (float): Probability of adding salt noise.
             pepper_prob (float): Probability of adding pepper noise.
 
         Returns:
-            numpy.ndarray: The img with added salt and pepper noise.
+            np.ndarray: The img with added salt and pepper noise.
         """
-        noisy_img = np.copy(img)
+        # noisy_img = np.copy(img)
         total_pixels = img.size
 
         # Add salt noise
         num_salt = int(total_pixels * salt_prob)
         salt_coords = [np.random.randint(0, i - 1, num_salt) for i in img.shape]
-        noisy_img[salt_coords[0], salt_coords[1]] = 255
+        img[salt_coords[0], salt_coords[1]] = 255
 
         # Add pepper noise
         num_pepper = int(total_pixels * pepper_prob)
         pepper_coords = [np.random.randint(0, i - 1, num_pepper) for i in img.shape]
-        noisy_img[pepper_coords[0], pepper_coords[1]] = 0
+        img[pepper_coords[0], pepper_coords[1]] = 0
 
-        return noisy_img
+        return img
 
-    def generate_img(self, square_size: int, lines_numb: int, line_thickness: int):
+    def generate_img(
+        self, square_size: int, lines_numb: int, line_thickness: int
+    ) -> np.ndarray:
+        """
+        Generate a noisy image with random straight lines and a filled square.
+
+        Args:
+            square_size (int): The size of the square to be drawn.
+            lines_numb (int): The number of random straight lines to draw.
+            line_thickness (int): The thickness of the lines.
+
+        Returns:
+            np.ndarray: The generated image as a NumPy array.
+        """
         # Create a blank white image
         img = np.ones((self.img_height, self.img_width), dtype=np.uint8) * 255
 
@@ -112,49 +127,55 @@ class ImageGenerator(BaseImageProcessor):
 
 
 class SquareDetector(BaseImageProcessor):
-    COLOR_RESULT = (255, 0, 0)
-    NEUTRAL_4 = (255, 162, 38, 128)
+    """
+    A class for detecting and marking a square in an image.
+
+    Attributes:
+        COLOR_RESULT (tuple): The color for marking the detected square in RGBA format.
+
+    Methods:
+        find_square(img: np.ndarray) -> str:
+            Detects a square in the input image and returns the result as a base64-encoded image.
+
+    """
+
+    COLOR_RESULT = (255, 162, 38, 128)
 
     def __init__(self) -> None:
         super().__init__()
         self.math_processor = MathProcessor()
 
-    def _remove_noise(self, img, kernel_size=3):
+    def _remove_noise(self, img: np.ndarray, kernel_size: int = 3) -> np.ndarray:
         """
         Remove salt and pepper noise from an image using median filtering.
 
         Args:
-            image (numpy.ndarray): The noisy input image.
+            image (np.ndarray): The noisy input image.
             kernel_size (int): The size of the median filter kernel. Default is 3.
 
         Returns:
-            numpy.ndarray: The cleaned image.
+            np.ndarray: The cleaned image.
         """
         cleaned_image = cv2.medianBlur(img, kernel_size)
 
         return cleaned_image
 
-    def _get_lines_intersections(self, img: np.ndarray) -> dict:
+    def _get_lines_intersections(self, img: np.ndarray) -> List[Tuple[int, int]]:
+        """
+        Find intersections of lines detected in the input image using the Hough Line Transform.
+
+        Args:
+            img (np.ndarray): Input image as a NumPy array.
+
+        Returns:
+            List[Tuple[int, int]]: A list of tuples containing (x, y) coordinates of intersections.
+        """
         img_canny = cv2.Canny(img, 50, 150, apertureSize=3)
         lines = cv2.HoughLinesP(
             img_canny, 1, np.pi / 180, threshold=20, minLineLength=20, maxLineGap=10
         )
         height, width = img.shape
         intersections = self.math_processor.find_intersections(lines, width, height)
-        # intersections = self.math_processor.split_points_by_quadrant(
-        #     intersections, width, height
-        # )
-        # img_lines = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-        # for _, line in enumerate(lines):
-        #     x1, y1, x2, y2 = line[0]
-        #     cv2.line(img_lines, (x1, y1), (x2, y2), color=(0, 255, 0), thickness=1)
-
-        # for point in intersections:
-        #     cv2.circle(img_lines, point, 2, (255, 0, 0), -1)
-
-        # cv2.imshow("lines", img_lines)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
 
         return intersections
 
@@ -174,35 +195,52 @@ class SquareDetector(BaseImageProcessor):
                 1. list: List of four vertices of the square ROI.
                 2. np.ndarray: The result image with vertices marked.
         """
-        self.intersections = self._get_lines_intersections(img)
+        intersections = self._get_lines_intersections(img)
         square_vertices, _ = self.math_processor.get_vertices_ransac(
             img,
-            intersections=self.intersections,
-            ransac_iterations=100000,
+            intersections=intersections,
+            ransac_iterations=1000,
         )
 
         return square_vertices
 
-    def _draw_result(self, img: np.ndarray, verticies: Sequence[Tuple[int, int]]):
+    def _draw_result(
+        self, img: np.ndarray, verticies: Sequence[Tuple[int, int]]
+    ) -> str:
+        """
+        Draw the result on the input image by marking the detected vertices with circles.
+
+        Args:
+            img (np.ndarray): Input image as a NumPy array.
+            verticies (Sequence[Tuple[int, int]]): A sequence of (x, y) coordinates of vertices.
+
+        Returns:
+            str: Base64-encoded image result as a string.
+        """
         img_res = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
         for point in verticies:
             x, y = point
-            cv2.circle(img_res, (x, y), 5, self.NEUTRAL_4, -1)
-        for point in verticies:
-            x, y = point
-            cv2.circle(img_res, (x, y), 5, self.NEUTRAL_4, -1)
-        # cv2.imshow("img", img_res)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-        # img_res = cv2.cvtColor(img_res, cv2.COLOR_BGRA2RGBA)
-        # img_res = self.get_img_base64(img_res)
+            cv2.circle(img_res, (x, y), 5, self.COLOR_RESULT, -1)
+        img_res = self.get_img_base64(img_res)
         return img_res
 
-    def find_square(self, img):
+    def find_square(self, img: np.ndarray) -> str:
+        """
+        Find a square in the input image and return a new image with the square outlined.
+
+        Args:
+            img (np.ndarray): Input image as a NumPy array.
+
+        Returns:
+            str: Base64-encoded image result as a string.
+
+        This method processes the input image to detect a square, removes noise, thresholds
+        the image, identifies the square's vertices, and outlines the square in the result image.
+        The result image is encoded as a base64 string and returned.
+        """
         img_cleaned = self._remove_noise(img)
         _, img_thr = cv2.threshold(img_cleaned, 128, 255, cv2.THRESH_BINARY)
         verticies = self._get_square_vertices(img_thr)
-
         img_res = self._draw_result(img, verticies)
         return img_res
 

@@ -21,7 +21,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# app.include_router(main_window.router)
 app.include_router(main_tab.router)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
