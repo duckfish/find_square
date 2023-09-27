@@ -1,0 +1,139 @@
+// primary color
+$primary: #fa5c00;
+$modal-content-bg: #333;
+$modal-content-border-width: 1px;
+$modal-content-border-color: #6c757d;
+$modal-header-border-color: #333;
+$modal-footer-border-color: #333;
+
+$accordion-button-color: #6c757d;
+$accordion-button-bg: #333;
+$accordion-border-color: #6c757d;
+$accordion-button-focus-border-color: #6c757d;
+$accordion-button-active-bg: #fff;
+$accordion-button-active-color: #000;
+
+$code-color: #000;
+
+$input-padding-x: 0.35rem;
+
+// import bootstrap
+@import "../bootstrap/scss/bootstrap";
+
+//
+// Switch
+//
+
+.form-switch {
+  padding-left: $form-switch-padding-start;
+
+  .form-check-input {
+    width: $form-switch-width;
+    margin-left: $form-switch-padding-start * -1;
+    background-image: escape-svg($form-switch-bg-image);
+    background-position: left center;
+    @include border-radius($form-switch-border-radius);
+    @include transition($form-switch-transition);
+
+    ~.form-check-label {
+      opacity: $form-check-label-disabled-opacity;
+    }
+
+    &:focus {
+      background-image: escape-svg($form-switch-focus-bg-image);
+    }
+
+    &:checked {
+      ~.form-check-label {
+        color: $primary;
+        opacity: 1;
+      }
+
+      background-position: $form-switch-checked-bg-position;
+
+      @if $enable-gradients {
+        background-image: escape-svg($form-switch-checked-bg-image),
+        var(--#{$variable-prefix}gradient);
+      }
+
+      @else {
+        background-image: escape-svg($form-switch-checked-bg-image);
+      }
+    }
+  }
+}
+
+.custom-file-button {
+  input[type="file"] {
+    margin-left: -2px !important;
+    display: none;
+
+    &::-webkit-file-upload-button {
+      display: block;
+    }
+
+    &::file-selector-button {
+      display: none;
+    }
+  }
+
+  &:hover {
+    label {
+      background-color: #dde0e3;
+      cursor: pointer;
+    }
+  }
+}
+
+
+// .accordion-button {
+//   position: relative;
+//   display: flex;
+//   align-items: center;
+//   width: 100%;
+//   padding: var(--#{$prefix}accordion-btn-padding-y) var(--#{$prefix}accordion-btn-padding-x);
+//   @include font-size($font-size-base);
+//   color: var(--#{$prefix}accordion-btn-color);
+//   text-align: left; // Reset button style
+//   background-color: var(--#{$prefix}accordion-btn-bg);
+//   border: 0;
+//   @include border-radius(0);
+//   overflow-anchor: none;
+//   @include transition(var(--#{$prefix}accordion-transition));
+
+//   &:not(.collapsed) {
+//     color: var(--#{$prefix}accordion-active-color);
+//     background-color: var(--#{$prefix}accordion-active-bg);
+//     box-shadow: inset 0 calc(-1 * var(--#{$prefix}accordion-border-width)) 0 var(--#{$prefix}accordion-border-color); // stylelint-disable-line function-disallowed-list
+
+//     &::after {
+//       background-image: var(--#{$prefix}accordion-btn-active-icon);
+//       transform: var(--#{$prefix}accordion-btn-icon-transform);
+//     }
+//   }
+
+//   // Accordion icon
+//   &::after {
+//     flex-shrink: 0;
+//     width: var(--#{$prefix}accordion-btn-icon-width);
+//     height: var(--#{$prefix}accordion-btn-icon-width);
+//     margin-left: auto;
+//     content: "";
+//     background-image: var(--#{$prefix}accordion-btn-icon);
+//     background-repeat: no-repeat;
+//     background-size: var(--#{$prefix}accordion-btn-icon-width);
+//     @include transition(var(--#{$prefix}accordion-btn-icon-transition));
+//   }
+
+//   &:hover {
+//     z-index: 2;
+//   }
+
+//   &:focus {
+//     z-index: 3;
+//     // border-color: var(--#{$prefix}accordion-btn-focus-border-color);
+//     // color: 
+//     outline: 0;
+//     // box-shadow: var(--#{$prefix}accordion-btn-focus-box-shadow);
+//   }
+// }

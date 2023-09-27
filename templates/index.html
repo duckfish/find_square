@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Wafer Breakage Inspection</title>
+    <link rel="icon" type="image/png" href="/static/images/favicon-16x16.png">
+
+    <!-- Bootstrap compiled CSS -->
+    <link href="/static/css/main.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="/static/css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container d-flex h-100 p-3 mx-auto flex-column">
+        <header class="masthead mb-5">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3 class="masthead-brand">Square Detector</h3>
+                </div>
+                <div class="col-md-4 d-flex justify-content-center">
+                    <nav>
+                        <div class="nav nav-tabs nav-masthead" id="nav-tab" role="tablist">
+                            <button class="nav-link active" id="nav-main-tab" data-bs-toggle="tab"
+                                data-bs-target="#nav-main" type="button" role="tab" aria-controls="nav-main"
+                                aria-selected="true">Main
+                            </button>
+                            <button class="nav-link" id="nav-settings-tab" data-bs-toggle="tab"
+                                data-bs-target="#nav-settings" type="button" role="tab" aria-controls="nav-settings"
+                                aria-selected="false">Settings
+                            </button>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </header>
+        <main>
+            <div class="row align-items-start colf">
+                <div class="col-md-8">
+                    <img id="image" src="" alt="Image" class="img-fluid">
+                </div>
+                <div class="col-md-4">
+                    <div class="tab-content px-1" id="nav-tabContent">
+                        <div class="tab-pane fade show active" id="nav-main" role="tabpanel"
+                            aria-labelledby="nav-main-tab">
+                            <div class="d-grid mt-3">
+                                <button class="btn btn-outline-secondary cstm-btn" id="generate-img-button">Generate
+                                    Image
+                                </button>
+                                <button class="btn btn-outline-secondary cstm-btn mt-4" id="find-square-button">Find
+                                    Square
+                                </button>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="nav-settings" role="tabpanel" aria-labelledby="nav-settings-tab">
+                            <form>
+                                <label class="form-label lead">Square size</label>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">px</span>
+                                    <input type="number" class="form-control" value="500" min="100" max="800"
+                                        id="square-size-input">
+                                </div>
+                            </form>
+                            <label for="lines-number" class="form-label lead">Lines number&nbsp;&nbsp;&nbsp;</label>
+                            <span class='lead' id="lines-number-indicator"></span>
+                            <input type="range" class="form-range" min="1" max="5" id="lines-number">
+
+                            <label for="line-width" class="form-label lead">Line width&nbsp;&nbsp;&nbsp;</label>
+                            <span class='lead' id="line-width-indicator"></span>
+                            <input type="range" class="form-range" min="10" max="100" id="line-width">
+                        </div>
+                    </div>
+                </div>
+        </main>
+        <footer class="mastfoot mt-auto">
+            <p>2023</p>
+        </footer>
+
+    </div>
+    <!-- Bootstrap core JavaScript -->
+    <script src="static/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- htmx -->
+    <script src="static/htmx/htmx.min.js"></script>
+
+    <!-- plotly -->
+    <script src="static/plotly/plotly-2.14.0.min.js"></script>
+
+    <script>
+        var host = "{{ host }}";
+        var port = '{{ port }}';
+    </script>
+
+    <!-- main.js -->
+    <script src="static/js/wbi.js"></script>
+</body>
+
+</html>
