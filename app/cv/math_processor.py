@@ -79,7 +79,9 @@ class MathProcessor:
         Returns:
             List[Tuple[int, int]]: A list of four tuples, each containing (x, y) coordinates of a randomly selected point from each quadrant.
         """
-        while True:
+
+        max_iterations = math.comb(len(intersections), 4)
+        for _ in range(max_iterations):
             quad = random.sample(intersections, 4)
             # Convert the quad to a tuple for hashing
             quad_tuple = tuple(quad)
@@ -87,6 +89,7 @@ class MathProcessor:
             if quad_tuple not in self.sampled_points:
                 self.sampled_points.add(quad_tuple)
                 return quad
+        return None
 
     def _perpendicular_lines(
         self, line1: Sequence[float], line2: Sequence[float], tolerance: float = 0.5
@@ -253,35 +256,21 @@ class MathProcessor:
         intersections: dict,
         ransac_iterations: int = 1000,
     ):
+        self.sampled_points = set()
         best_square_vertices = None
 
         error_min = 100  # px
         black_pixels_max = 0
-        for _ in range(ransac_iterations):
+        for i in range(ransac_iterations):
             # Randomly sample four intersections
             quad = self.get_random_quad(intersections)
-
-            # img_test = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-
-            # for point in quad:
-            #     cv2.circle(img_test, point, 2, (255, 0, 0), -1)
-
-            # cv2.imshow("lines", img_test)
-            # cv2.waitKey(0)
-            # cv2.destroyAllWindows()
-
-            # Fit a model and check the number of inliers
-            is_square, error = self._is_square(quad)
-            if is_square:
-                # Calculate the black pixels
-                black_pixels = self._count_black_pixels(quad, img)
-                # Update the best model if it has more inliers
-                # if error < error_min and black_pixels > black_pixels_max:
-                #     best_square_vertices = quad
-                #     error_min = error
-                #     black_pixels_max = black_pixels
-                if black_pixels > black_pixels_max:
-                    best_square_vertices = quad
-                    # error_min = error
-                    black_pixels_max = black_pixels
+            if quad:
+                is_square, _ = self._is_square(quad)
+                if is_square:
+                    # Calculate the black pixels
+                    black_pixels = self._count_black_pixels(quad, img)
+                    if black_pixels > black_pixels_max:
+                        best_square_vertices = quad
+                        # error_min = error
+                        black_pixels_max = black_pixels
         return best_square_vertices, error_min
