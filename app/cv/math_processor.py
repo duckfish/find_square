@@ -4,7 +4,9 @@ from typing import Dict, List, Sequence, Tuple, Union
 
 import cv2
 import numpy as np
+import logging
 
+logger = logging.getLogger('pet')
 
 class MathProcessor:
     def __init__(self):
@@ -81,7 +83,8 @@ class MathProcessor:
         """
 
         max_iterations = math.comb(len(intersections), 4)
-        for _ in range(max_iterations):
+        # print(max_iterations)
+        while True:
             quad = random.sample(intersections, 4)
             # Convert the quad to a tuple for hashing
             quad_tuple = tuple(quad)
@@ -89,7 +92,7 @@ class MathProcessor:
             if quad_tuple not in self.sampled_points:
                 self.sampled_points.add(quad_tuple)
                 return quad
-        return None
+        # return None
 
     def _perpendicular_lines(
         self, line1: Sequence[float], line2: Sequence[float], tolerance: float = 0.5
@@ -195,6 +198,9 @@ class MathProcessor:
         distances.remove(diagonal1)
         diagonal2 = max(distances)
         distances.remove(diagonal2)
+        error_max = 0
+        if abs(diagonal1 - diagonal2) > diagonal1 * 0.05:
+            return False, error_max
 
         # distance_avrg = sum(distances) / len(distances)
         # errors = []
@@ -208,7 +214,6 @@ class MathProcessor:
         # if len(errors) != 0:
         #     error = sum(errors) / len(errors)
 
-        error_max = 0
         for i in range(len(distances)):
             for j in range(i + 1, len(distances)):
                 error = abs(distances[i] - distances[j])
@@ -256,6 +261,10 @@ class MathProcessor:
         intersections: dict,
         ransac_iterations: int = 1000,
     ):
+        max_iterations = math.comb(len(intersections), 4)
+        logger.info(f'Unique quads: {max_iterations}')
+        if max_iterations < ransac_iterations:
+            ransac_iterations = max_iterations
         self.sampled_points = set()
         best_square_vertices = None
 
@@ -273,4 +282,5 @@ class MathProcessor:
                         best_square_vertices = quad
                         # error_min = error
                         black_pixels_max = black_pixels
+        logger.info(f'Iterated quads: {len(self.sampled_points)}')
         return best_square_vertices, error_min
