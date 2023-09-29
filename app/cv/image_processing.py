@@ -1,10 +1,13 @@
 import base64
+import logging
 import random
 from typing import List, Sequence, Tuple
 
 import cv2
 import numpy as np
 from cv.math_processor import MathProcessor
+
+logger = logging.getLogger("pet")
 
 
 class BaseImageProcessor:
@@ -174,8 +177,6 @@ class SquareDetector(BaseImageProcessor):
         lines = cv2.HoughLinesP(
             img_canny, 1, np.pi / 180, threshold=20, minLineLength=20, maxLineGap=5
         )
-        
-        
 
         height, width = img.shape
         intersections = self.math_processor.find_intersections(lines, width, height)
@@ -186,7 +187,7 @@ class SquareDetector(BaseImageProcessor):
             cv2.line(img_res, (x1, y1), (x2, y2), (0, 0, 255), 5)
         for point in intersections:
             cv2.circle(img_res, point, 2, (0, 255, 0), 1)
-        cv2.imshow('test', img_res)
+        cv2.imshow("test", img_res)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
@@ -254,6 +255,7 @@ class SquareDetector(BaseImageProcessor):
         img_cleaned = self._remove_noise(img)
         _, img_thr = cv2.threshold(img_cleaned, 128, 255, cv2.THRESH_BINARY)
         verticies = self._get_square_vertices(img_thr)
+        logger.debug(f"{verticies}")
         img_res = self._draw_result(img, verticies)
         return img_res
 

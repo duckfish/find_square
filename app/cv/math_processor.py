@@ -1,12 +1,14 @@
+import itertools
+import logging
 import math
 import random
 from typing import Dict, List, Sequence, Tuple, Union
 
 import cv2
 import numpy as np
-import logging
 
-logger = logging.getLogger('pet')
+logger = logging.getLogger("pet")
+
 
 class MathProcessor:
     def __init__(self):
@@ -262,7 +264,7 @@ class MathProcessor:
         ransac_iterations: int = 1000,
     ):
         max_iterations = math.comb(len(intersections), 4)
-        logger.info(f'Unique quads: {max_iterations}')
+        logger.info(f"Unique quads: {max_iterations}")
         if max_iterations < ransac_iterations:
             ransac_iterations = max_iterations
         self.sampled_points = set()
@@ -282,5 +284,10 @@ class MathProcessor:
                         best_square_vertices = quad
                         # error_min = error
                         black_pixels_max = black_pixels
-        logger.info(f'Iterated quads: {len(self.sampled_points)}')
+        logger.info(f"Iterated quads: {len(self.sampled_points)}")
+        # logger.debug(f"Sampled points: {self.sampled_points}")
+        all_quads = set(itertools.combinations(intersections, 4))
+        logger.debug(f"All possible quads: {all_quads}")
+        logger.debug(f"Number of all possible quads: {len(all_quads)}")
+
         return best_square_vertices, error_min
