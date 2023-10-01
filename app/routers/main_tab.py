@@ -1,5 +1,4 @@
 import cachetools
-import cv2
 from cv.image_processing import image_generator, square_detector
 from fastapi import APIRouter, Form
 
@@ -26,8 +25,5 @@ def test_image(
     session_id: str,
 ):
     img = img_cache[session_id]
-    # img = cv2.imread(
-    #     r"C:\Projects\Python\find_square\test_img\img.png", cv2.IMREAD_GRAYSCALE
-    # )
     img_base64 = square_detector.find_square(img)
     return {"img": img_base64}
