@@ -1,13 +1,10 @@
 import base64
-import logging
 import random
 from typing import List, Sequence, Tuple
 
 import cv2
 import numpy as np
 from cv.math_processor import MathProcessor
-
-logger = logging.getLogger("pet")
 
 
 class BaseImageProcessor:
@@ -25,11 +22,21 @@ class ImageGenerator(BaseImageProcessor):
         self.img_width = 1000
         self.img_height = 1000
 
-    def _generate_random_lines(self, lines_numb: int) -> List[tuple]:
+    def _generate_random_lines(self, lines_numb: int) -> List[Tuple[Tuple[int, int]]]:
+        """
+        Generate random lines with specified parameters within the image boundaries.
+
+        Args:
+            lines_numb (int): The number of random lines to generate.
+
+        Returns:
+            List[Tuple[Tuple[int, int]]]: A list of tuples, each containing two tuples representing
+            the coordinates of the start and end points of a randomly generated line segment.
+        """
         lines = []
         for _ in range(lines_numb):
             # Randomly generate line parameters (slope and y-intercept)
-            k = random.uniform(-2, 2)  # Adjust the range as needed
+            k = random.uniform(-2, 2)
             b = random.uniform(0, self.img_height)
 
             # Calculate points where the line crosses the image boundaries
@@ -41,30 +48,23 @@ class ImageGenerator(BaseImageProcessor):
             lines.append(((x1, y1), (x2, y2)))
         return lines
 
-    def _generate_square_points(self, square_size: int) -> Tuple[tuple]:
-        # Randomly generate square parameters (position and size)
+    def _generate_square_points(self, square_size: int) -> Tuple[Tuple[int, int]]:
+        """
+        Generate random coordinates for a square within the image canvas.
+
+        Args:
+            square_size (int): The size of the square's sides.
+
+        Returns:
+            Tuple[Tuple[int, int]]: A tuple containing two tuples, each containing (x, y) coordinates
+            representing the top-left and bottom-right corners of the randomly positioned square.
+        """
         shift = int(square_size * 1.2)  # A square to be within image canvas
         x_square = random.randint(0, self.img_width - shift)
         y_square = random.randint(0, self.img_height - shift)
         point1 = (x_square, y_square)
         point2 = (x_square + square_size, y_square + square_size)
         return point1, point2
-
-    def _add_gaussian_noise(self, img: np.ndarray, mean=0, std=25):
-        """
-        Add Gaussian noise to an image.
-
-        Args:
-            image (np.ndarray): The input image.
-            mean (int): Mean of the Gaussian noise. Default is 0.
-            std (int): Standard deviation of the Gaussian noise. Default is 25.
-
-        Returns:
-            np.ndarray: The image with added Gaussian noise.
-        """
-        noise = np.random.normal(mean, std, img.shape).astype(np.uint8)
-        img_noisy = cv2.add(img, noise)
-        return img_noisy
 
     def _add_salt_and_pepper_noise(
         self, img: np.ndarray, salt_prob: float = 0.1, pepper_prob: float = 0.06
@@ -80,7 +80,6 @@ class ImageGenerator(BaseImageProcessor):
         Returns:
             np.ndarray: The img with added salt and pepper noise.
         """
-        # noisy_img = np.copy(img)
         total_pixels = img.size
 
         # Add salt noise
@@ -255,7 +254,6 @@ class SquareDetector(BaseImageProcessor):
         img_cleaned = self._remove_noise(img)
         _, img_thr = cv2.threshold(img_cleaned, 128, 255, cv2.THRESH_BINARY)
         verticies = self._get_square_vertices(img_thr)
-        logger.debug(f"{verticies}")
         img_res = self._draw_result(img, verticies)
         return img_res
 
