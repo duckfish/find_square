@@ -26,8 +26,8 @@ def test_image(
     session_id: str,
 ):
     img = img_cache[session_id]
-    img = cv2.imread(
-        "/home/duckfish/projects/find_square/test_img/img.png", cv2.IMREAD_GRAYSCALE
-    )
+    # img = cv2.imread(
+    #     r"C:\Projects\Python\find_square\test_img\img.png", cv2.IMREAD_GRAYSCALE
+    # )
     img_base64 = square_detector.find_square(img)
     return {"img": img_base64}

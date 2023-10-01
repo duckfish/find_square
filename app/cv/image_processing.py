@@ -181,15 +181,15 @@ class SquareDetector(BaseImageProcessor):
         height, width = img.shape
         intersections = self.math_processor.find_intersections(lines, width, height)
 
-        img_res = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-        for line in lines:
-            x1, y1, x2, y2 = line[0]
-            cv2.line(img_res, (x1, y1), (x2, y2), (0, 0, 255), 5)
-        for point in intersections:
-            cv2.circle(img_res, point, 2, (0, 255, 0), 1)
-        cv2.imshow("test", img_res)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # img_res = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        # for line in lines:
+        #     x1, y1, x2, y2 = line[0]
+        #     cv2.line(img_res, (x1, y1), (x2, y2), (0, 0, 255), 5)
+        # for point in intersections:
+        #     cv2.circle(img_res, point, 2, (0, 255, 0), 1)
+        # cv2.imshow("test", img_res)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
         return intersections
 
@@ -213,7 +213,7 @@ class SquareDetector(BaseImageProcessor):
         square_vertices, _ = self.math_processor.get_vertices_ransac(
             img,
             intersections=intersections,
-            ransac_iterations=10000,
+            ransac_iterations=2000,
         )
 
         return square_vertices

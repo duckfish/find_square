@@ -84,16 +84,19 @@ class MathProcessor:
             List[Tuple[int, int]]: A list of four tuples, each containing (x, y) coordinates of a randomly selected point from each quadrant.
         """
 
-        max_iterations = math.comb(len(intersections), 4)
+        # max_iterations = math.comb(len(intersections), 4)
         # print(max_iterations)
-        while True:
-            quad = random.sample(intersections, 4)
+        # while True:
+        quad = random.sample(intersections, 4)
+            # quad = self._sort_quad(quad)
             # Convert the quad to a tuple for hashing
-            quad_tuple = tuple(quad)
+            # quad_tuple = tuple(quad)
 
-            if quad_tuple not in self.sampled_points:
-                self.sampled_points.add(quad_tuple)
-                return quad
+            # if quad_tuple not in self.sampled_points:
+            #     self.sampled_points.add(quad_tuple)
+            #     print(len(self.sampled_points))
+                
+        return quad
         # return None
 
     def _perpendicular_lines(
@@ -263,16 +266,10 @@ class MathProcessor:
         intersections: dict,
         ransac_iterations: int = 1000,
     ):
-        max_iterations = math.comb(len(intersections), 4)
-        logger.info(f"Unique quads: {max_iterations}")
-        if max_iterations < ransac_iterations:
-            ransac_iterations = max_iterations
-        self.sampled_points = set()
         best_square_vertices = None
-
-        error_min = 100  # px
         black_pixels_max = 0
-        for i in range(ransac_iterations):
+
+        for _ in range(ransac_iterations):
             # Randomly sample four intersections
             quad = self.get_random_quad(intersections)
             if quad:
@@ -282,12 +279,6 @@ class MathProcessor:
                     black_pixels = self._count_black_pixels(quad, img)
                     if black_pixels > black_pixels_max:
                         best_square_vertices = quad
-                        # error_min = error
                         black_pixels_max = black_pixels
-        logger.info(f"Iterated quads: {len(self.sampled_points)}")
-        # logger.debug(f"Sampled points: {self.sampled_points}")
-        all_quads = set(itertools.combinations(intersections, 4))
-        logger.debug(f"All possible quads: {all_quads}")
-        logger.debug(f"Number of all possible quads: {len(all_quads)}")
 
-        return best_square_vertices, error_min
+        return best_square_vertices
