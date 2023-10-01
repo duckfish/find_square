@@ -209,7 +209,7 @@ class SquareDetector(BaseImageProcessor):
                 2. np.ndarray: The result image with vertices marked.
         """
         intersections = self._get_lines_intersections(img)
-        square_vertices, _ = self.math_processor.get_vertices_ransac(
+        square_vertices = self.math_processor.get_vertices_ransac(
             img,
             intersections=intersections,
             ransac_iterations=2000,
