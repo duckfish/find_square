@@ -4,7 +4,18 @@ function generateSessionId() {
 
 const sessionId = generateSessionId();
 
-const squareSizeInput = htmx.find('#square-size-input')
+// const squareSizeInput = htmx.find('#square-size-input')
+
+// Get a reference to the range input and the span element to display the value
+const squareSizeInput = document.getElementById('square-size');
+const squareSizeIndicator = document.getElementById('square-size-indicator');
+squareSizeIndicator.textContent = squareSizeInput.value;
+
+// Add an event listener to the range input for the 'input' event
+squareSizeInput.addEventListener('input', function() {
+    // Update the text content of the span element with the current value of the range input
+    squareSizeIndicator.textContent = squareSizeInput.value;
+});
 
 // Get a reference to the range input and the span element to display the value
 const linesNumberInput = document.getElementById('lines-number');

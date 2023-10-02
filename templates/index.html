@@ -59,14 +59,18 @@
                             </div>
                         </div>
                         <div class="tab-pane fade" id="nav-settings" role="tabpanel" aria-labelledby="nav-settings-tab">
-                            <form>
+                            <!-- <form>
                                 <label class="form-label lead">Square size</label>
                                 <div class="input-group mb-3">
                                     <span class="input-group-text">px</span>
                                     <input type="number" class="form-control" value="500" min="100" max="800"
                                         id="square-size-input">
                                 </div>
-                            </form>
+                            </form> -->
+                            <label for="square-size" class="form-label lead">Square size&nbsp;&nbsp;&nbsp;</label>
+                            <span class='lead' id="lines-number-indicator"></span>
+                            <input type="range" class="form-range" min="300" max="700" id="square-size">
+
                             <label for="lines-number" class="form-label lead">Lines number&nbsp;&nbsp;&nbsp;</label>
                             <span class='lead' id="lines-number-indicator"></span>
                             <input type="range" class="form-range" min="1" max="5" id="lines-number">
