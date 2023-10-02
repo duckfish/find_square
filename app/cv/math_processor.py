@@ -1,6 +1,6 @@
 import math
 import random
-from typing import Dict, List, Sequence, Tuple, Optional
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import cv2
 import numpy as np
@@ -42,7 +42,7 @@ class MathProcessor:
         """
         x1, y1, x2, y2 = line1
         x3, y3, x4, y4 = line2
-        
+
         angle1 = np.arctan2(y2 - y1, x2 - x1)
         angle2 = np.arctan2(y4 - y3, x4 - x3)
 
@@ -223,9 +223,18 @@ class MathProcessor:
             int: The count of black pixels within the specified quadrilateral region of the image.
         """
         quad_sorted = self._sort_quad(quad)
+
+        side_length = self.calculate_distance(quad_sorted[0], quad_sorted[1])
+        footage = side_length**2
+
         img_masked = self._mask_image(img, quad_sorted)
         black_pixels = np.count_nonzero(img_masked == 0)
-        return black_pixels
+
+        fake_square = False
+        if black_pixels < 0.9 * footage:
+            fake_square = True
+
+        return fake_square, black_pixels
 
     def get_vertices_ransac(
         self,
@@ -244,7 +253,7 @@ class MathProcessor:
         Returns:
             Optional[List[Tuple[int, int]]]: The estimated square vertices as a list of (x, y) coordinates,
             or None if no square is found.
-        """    
+        """
         best_square_vertices = None
         black_pixels_max = 0
 
@@ -255,8 +264,8 @@ class MathProcessor:
                 is_square, _ = self._is_square(quad)
                 if is_square:
                     # Calculate the black pixels
-                    black_pixels = self._count_black_pixels(quad, img)
-                    if black_pixels > black_pixels_max:
+                    fake_square, black_pixels = self._count_black_pixels(quad, img)
+                    if not fake_square and black_pixels > black_pixels_max:
                         best_square_vertices = quad
                         black_pixels_max = black_pixels
 

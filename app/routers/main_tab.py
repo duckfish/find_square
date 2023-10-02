@@ -1,4 +1,5 @@
 import cachetools
+import cv2
 from cv.image_processing import image_generator, square_detector
 from fastapi import APIRouter, Form
 
@@ -25,5 +26,9 @@ def test_image(
     session_id: str,
 ):
     img = img_cache[session_id]
+    img = cv2.imread(
+        "/home/duckfish/projects/find_square/image_testing/img_kek2.png",
+        cv2.IMREAD_GRAYSCALE,
+    )
     img_base64 = square_detector.find_square(img)
     return {"img": img_base64}
