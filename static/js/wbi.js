@@ -4,6 +4,15 @@ function generateSessionId() {
 
 const sessionId = generateSessionId();
 
+const zoomableImage = document.getElementById('image');
+panzoom(zoomableImage, { 
+    bounds: true,
+    maxZoom: 1.55,
+    minZoom: 1,
+    zoomDoubleClickSpeed: 1,
+  });
+// panzoom(zoomableImage);
+
 // const squareSizeInput = htmx.find('#square-size-input')
 
 // Get a reference to the range input and the span element to display the value
@@ -12,7 +21,7 @@ const squareSizeIndicator = document.getElementById('square-size-indicator');
 squareSizeIndicator.textContent = squareSizeInput.value;
 
 // Add an event listener to the range input for the 'input' event
-squareSizeInput.addEventListener('input', function() {
+squareSizeInput.addEventListener('input', function () {
     // Update the text content of the span element with the current value of the range input
     squareSizeIndicator.textContent = squareSizeInput.value;
 });
@@ -23,7 +32,7 @@ const linesNumberIndicator = document.getElementById('lines-number-indicator');
 linesNumberIndicator.textContent = linesNumberInput.value;
 
 // Add an event listener to the range input for the 'input' event
-linesNumberInput.addEventListener('input', function() {
+linesNumberInput.addEventListener('input', function () {
     // Update the text content of the span element with the current value of the range input
     linesNumberIndicator.textContent = linesNumberInput.value;
 });
@@ -34,7 +43,7 @@ const linesWidthIndicator = document.getElementById('line-width-indicator');
 linesWidthIndicator.textContent = linesWidthInput.value;
 
 // Add an event listener to the range input for the 'input' event
-linesWidthInput.addEventListener('input', function() {
+linesWidthInput.addEventListener('input', function () {
     // Update the text content of the span element with the current value of the range input
     linesWidthIndicator.textContent = linesWidthInput.value;
 });

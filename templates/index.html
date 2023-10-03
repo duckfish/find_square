@@ -43,7 +43,10 @@
         <main>
             <div class="row align-items-start colf">
                 <div class="col-md-8">
-                    <img id="image" src="" alt="Image" class="img-fluid">
+                    <div class="mt-3">
+                        <img id="image" src="" alt="Image" class="img-fluid">
+                        <span class="loader"></span>
+                    </div>
                 </div>
                 <div class="col-md-4">
                     <div class="tab-content px-1" id="nav-tabContent">
@@ -68,7 +71,7 @@
                                 </div>
                             </form> -->
                             <label for="square-size" class="form-label lead">Square size&nbsp;&nbsp;&nbsp;</label>
-                            <span class='lead' id="lines-number-indicator"></span>
+                            <span class='lead' id="square-size-indicator"></span>
                             <input type="range" class="form-range" min="300" max="700" id="square-size">
 
                             <label for="lines-number" class="form-label lead">Lines number&nbsp;&nbsp;&nbsp;</label>
@@ -95,6 +98,10 @@
 
     <!-- plotly -->
     <script src="static/plotly/plotly-2.14.0.min.js"></script>
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/panzoom/5.0.3/panzoom.min.js"></script> -->
+    <script src='https://unpkg.com/panzoom@9.4.0/dist/panzoom.min.js'></script>
+
 
     <script>
         var host = "{{ host }}";
