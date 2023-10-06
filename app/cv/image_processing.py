@@ -142,6 +142,7 @@ class SquareDetector(BaseImageProcessor):
     """
 
     COLOR_RESULT = (255, 162, 38, 128)
+    COLOR_RESULT = (0, 92, 250, 255)
 
     def __init__(self) -> None:
         super().__init__()
@@ -235,6 +236,9 @@ class SquareDetector(BaseImageProcessor):
         for point in verticies:
             x, y = point
             cv2.circle(img_res, (x, y), 5, self.COLOR_RESULT, -1)
+        verticies = np.array(verticies, np.int32)
+        verticies = verticies.reshape((-1, 1, 2))
+        cv2.polylines(img_res, [verticies], True, self.COLOR_RESULT, 2)
         img_res = self.get_img_base64(img_res)
         return img_res
 

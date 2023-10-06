@@ -269,4 +269,4 @@ class MathProcessor:
                         best_square_vertices = quad
                         black_pixels_max = black_pixels
 
-        return best_square_vertices
+        return self._sort_quad(best_square_vertices)
