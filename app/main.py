@@ -8,6 +8,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from routers import main_tab
+from dependencies import db
 
 logger = logging.getLogger("pet")
 
@@ -28,6 +29,7 @@ templates = Jinja2Templates(directory="templates")
 
 
 async def startup():
+    await db.connect_to_database(config.DB_URL)
     logger.info("Application startup complete.")
 
 
@@ -58,6 +60,6 @@ if __name__ == "__main__":
         host=config.UVICORN_SERVER_HOST,
         port=config.UVICORN_SERVER_PORT,
         log_config=config.LOG_CONFIG,
-        reload=True,
+        reload=config.UVICORN_SERVER_RELOAD,
         access_log=False,
     )

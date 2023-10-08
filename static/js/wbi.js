@@ -3,6 +3,7 @@ function generateSessionId() {
 }
 
 const sessionId = generateSessionId();
+let timestamp;
 
 const zoomableImage = document.getElementById('image');
 panzoom(zoomableImage, { 
@@ -52,13 +53,26 @@ linesWidthInput.addEventListener('input', function () {
 const generateButton = document.getElementById("generate-img-button");
 
 generateButton.addEventListener("click", async () => {
+    timestamp = new Date().getTime();
 
-    const response = await fetch(`/generate-image?session_id=${sessionId}`, {
+    const data = {
+        user_data: {
+            _id: timestamp,
+            session_id: sessionId
+        },
+        image_params: {
+            square_size: squareSizeInput.value,
+            lines_numb: linesNumberInput.value,
+            line_thickness: linesWidthInput.value
+        }
+    }
+
+    const response = await fetch('/generate-image', {
         method: "POST",
         headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Type": "application/json",
         },
-        body: `square_size=${squareSizeInput.value}&lines_number=${linesNumberInput.value}&line_width=${linesWidthInput.value}`,
+        body: JSON.stringify(data),
     });
 
     if (response.ok) {
@@ -74,11 +88,16 @@ const findButton = document.getElementById("find-square-button");
 
 findButton.addEventListener("click", async () => {
 
-    const response = await fetch(`/find-square?session_id=${sessionId}`, {
-        method: "GET",
+    const data = {
+            _id: timestamp,
+        };
+
+    const response = await fetch('/find-square', {
+        method: "POST",
         headers: {
-            "Content-Type": "application/json", // Updated content type
+            "Content-Type": "application/json",
         },
+        body: JSON.stringify(data),
     });
 
     if (response.ok) {
