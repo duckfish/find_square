@@ -239,7 +239,6 @@ class SquareDetector(BaseImageProcessor):
         verticies = np.array(verticies, np.int32)
         verticies = verticies.reshape((-1, 1, 2))
         cv2.polylines(img_res, [verticies], True, self.COLOR_RESULT, 2)
-        img_res = self.get_img_base64(img_res)
         return img_res
 
     def find_square(self, img: np.ndarray) -> str:

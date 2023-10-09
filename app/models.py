@@ -1,8 +1,7 @@
 from typing import Optional
 
-from bson import Binary
 from fastapi import Form
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 
 class UserData(BaseModel):
@@ -10,10 +9,15 @@ class UserData(BaseModel):
     session_id: Optional[str] = Field(None)
 
 
-class ImageData(UserData):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
+class ImageData(BaseModel):
+    id: int = Field(alias="_id")
+    session_id: str
     image: bytes
+
+
+class ImageDataUpdate(BaseModel):
+    id: int = Field(alias="_id")
+    image_result: bytes
 
 
 class ImageParams(BaseModel):

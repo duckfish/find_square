@@ -1,7 +1,13 @@
 import logging
 
 from config import config
-from models import ImageData
+from cv.image_processing import (
+    ImageGenerator,
+    SquareDetector,
+    image_generator,
+    square_detector,
+)
+from models import ImageData, ImageDataUpdate
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
 logger = logging.getLogger("pet")
@@ -34,17 +40,15 @@ class MongoManager:
         image_q = await self.db.images.find_one({"_id": id})
         if image_q:
             return ImageData(**image_q)
-        # return image_q
 
-    # async def delete_post(self, post_id: OID):
-    #     await self.db.posts.delete_one({'_id': ObjectId(post_id)})
+    async def update_line(self, image_data_update: ImageDataUpdate):
+        await self.db.images.update_one(
+            {"_id": image_data_update.id},
+            {"$set": image_data_update.model_dump(exclude={"id"})},
+        )
 
-    # async def update_post(self, post_id: OID, post: PostDB):
-    #     await self.db.posts.update_one({'_id': ObjectId(post_id)},
-    #                                    {'$set': post.dict(exclude={'id'})})
-
-    async def add_line(self, image: ImageData):
-        await self.db.images.insert_one(image)
+    async def add_line(self, image_data: ImageData):
+        await self.db.images.insert_one(image_data)
 
 
 db = MongoManager()
@@ -52,3 +56,11 @@ db = MongoManager()
 
 async def get_database() -> MongoManager:
     return db
+
+
+async def get_square_detector() -> SquareDetector:
+    return square_detector
+
+
+async def get_image_generator() -> ImageGenerator:
+    return image_generator
