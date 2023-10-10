@@ -15,6 +15,19 @@ class ImageData(BaseModel):
     image: bytes
 
 
+class ImageCreateRequest(BaseModel):
+    id: int = Field(alias="_id")
+    session_id: str
+    square_size: int
+    lines_numb: int
+    line_thickness: int
+
+
+class ImageFindRequest(BaseModel):
+    id: int = Field(alias="_id")
+    ransac_iterations: int
+
+
 class ImageDataUpdate(BaseModel):
     id: int = Field(alias="_id")
     image_result: bytes

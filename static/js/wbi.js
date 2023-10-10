@@ -49,6 +49,17 @@ linesWidthInput.addEventListener('input', function () {
     linesWidthIndicator.textContent = linesWidthInput.value;
 });
 
+// Get a reference to the range input and the span element to display the value
+const ransacInput = document.getElementById('ransac');
+const ransacIndicator = document.getElementById('ransac-indicator');
+ransacIndicator.textContent = ransacInput.value;
+
+// Add an event listener to the range input for the 'input' event
+ransacInput.addEventListener('input', function () {
+    // Update the text content of the span element with the current value of the range input
+    ransacIndicator.textContent = ransacInput.value;
+});
+
 
 const generateButton = document.getElementById("generate-img-button");
 
@@ -56,15 +67,11 @@ generateButton.addEventListener("click", async () => {
     timestamp = new Date().getTime();
 
     const data = {
-        user_data: {
             _id: timestamp,
-            session_id: sessionId
-        },
-        image_params: {
+            session_id: sessionId,
             square_size: squareSizeInput.value,
             lines_numb: linesNumberInput.value,
             line_thickness: linesWidthInput.value
-        }
     }
 
     const response = await fetch('/generate-image', {
@@ -90,6 +97,7 @@ findButton.addEventListener("click", async () => {
 
     const data = {
             _id: timestamp,
+            ransac_iterations: ransacInput.value
         };
 
     const response = await fetch('/find-square', {

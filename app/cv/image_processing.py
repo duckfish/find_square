@@ -196,8 +196,7 @@ class SquareDetector(BaseImageProcessor):
         return intersections
 
     def _get_square_vertices(
-        self,
-        img: np.ndarray,
+        self, img: np.ndarray, ransac_iterations: int
     ) -> List[Tuple[int, int]]:
         """
         Get the vertices of the square region of interest (ROI) in the image.
@@ -215,7 +214,7 @@ class SquareDetector(BaseImageProcessor):
         square_vertices = self.math_processor.get_vertices_ransac(
             img,
             intersections=intersections,
-            ransac_iterations=10000,
+            ransac_iterations=ransac_iterations,
         )
 
         return square_vertices
@@ -242,7 +241,9 @@ class SquareDetector(BaseImageProcessor):
         cv2.polylines(img_res, [verticies], True, self.COLOR_RESULT, 2)
         return img_res
 
-    def find_square(self, img: np.ndarray) -> Tuple[np.ndarray, int]:
+    def find_square(
+        self, img: np.ndarray, ransac_iterations: int
+    ) -> Tuple[np.ndarray, int]:
         """
         Find a square in the input image and return a new image with the square outlined.
 
@@ -259,7 +260,7 @@ class SquareDetector(BaseImageProcessor):
         t_start = perf_counter()
         img_cleaned = self._remove_noise(img)
         _, img_thr = cv2.threshold(img_cleaned, 128, 255, cv2.THRESH_BINARY)
-        verticies = self._get_square_vertices(img_thr)
+        verticies = self._get_square_vertices(img_thr, ransac_iterations)
         t_stop = perf_counter()
         elapsed_time = int((t_stop - t_start) * 1000)  # ms
 
