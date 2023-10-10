@@ -103,8 +103,6 @@ findButton.addEventListener("click", async () => {
     if (response.ok) {
         const responseData = await response.json();
         htmx.find('#image').src = responseData.img;
-        // Display the generated image in your UI using responseData.image
-    } else {
-        // Handle errors
-    }
+        htmx.find('#elapsed-time').value = responseData.elapsed_time;
+    };
 });

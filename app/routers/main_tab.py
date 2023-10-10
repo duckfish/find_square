@@ -42,11 +42,15 @@ async def test_image(
     image_data = await db.get_image(user_data.id)
     image = np.frombuffer(image_data.image, dtype=np.uint8).reshape((1000, 1000))
 
-    image_result = square_detector.find_square(image)
+    image_result, elapsed_time = square_detector.find_square(image)
     img_base64 = square_detector.get_img_base64(image_result)
 
-    image_data_update = {"_id": user_data.id, "image_result": image_result.tobytes()}
+    image_data_update = {
+        "_id": user_data.id,
+        "image_result": image_result.tobytes(),
+        "elapsed_time": elapsed_time,
+    }
     image_data_update = ImageDataUpdate(**image_data_update)
     await db.update_line(image_data_update)
 
-    return {"img": img_base64}
+    return {"img": img_base64, "elapsed_time": elapsed_time}

@@ -18,6 +18,7 @@ class ImageData(BaseModel):
 class ImageDataUpdate(BaseModel):
     id: int = Field(alias="_id")
     image_result: bytes
+    elapsed_time: int
 
 
 class ImageParams(BaseModel):

@@ -1,5 +1,6 @@
 import base64
 import random
+from time import perf_counter
 from typing import List, Sequence, Tuple
 
 import cv2
@@ -241,7 +242,7 @@ class SquareDetector(BaseImageProcessor):
         cv2.polylines(img_res, [verticies], True, self.COLOR_RESULT, 2)
         return img_res
 
-    def find_square(self, img: np.ndarray) -> str:
+    def find_square(self, img: np.ndarray) -> Tuple[np.ndarray, int]:
         """
         Find a square in the input image and return a new image with the square outlined.
 
@@ -255,11 +256,16 @@ class SquareDetector(BaseImageProcessor):
         the image, identifies the square's vertices, and outlines the square in the result image.
         The result image is encoded as a base64 string and returned.
         """
+        t_start = perf_counter()
         img_cleaned = self._remove_noise(img)
         _, img_thr = cv2.threshold(img_cleaned, 128, 255, cv2.THRESH_BINARY)
         verticies = self._get_square_vertices(img_thr)
+        t_stop = perf_counter()
+        elapsed_time = int((t_stop - t_start) * 1000)  # ms
+
         img_res = self._draw_result(img, verticies)
-        return img_res
+
+        return img_res, elapsed_time
 
 
 image_generator = ImageGenerator()
