@@ -8,6 +8,8 @@ class Config(BaseSettings):
     DB_URL: str
     DB_NAME: str
     LOG_CONFIG: str = "app/log_config.yaml"
+    IMG_SIZE: int
+
     class Config:
         env_file = ".env"
 

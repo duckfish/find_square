@@ -30,7 +30,7 @@ class ImageFindRequest(BaseModel):
 
 class ImageDataUpdate(BaseModel):
     id: int = Field(alias="_id")
-    image_result: bytes
+    image_result: bytes | None
     elapsed_time: int
 
 

@@ -5,6 +5,7 @@ from typing import List, Sequence, Tuple
 
 import cv2
 import numpy as np
+from config import config
 from cv.math_processor import MathProcessor
 
 
@@ -20,8 +21,8 @@ class ImageGenerator(BaseImageProcessor):
     ELEMENTS_COLOR = (0, 0, 0)
 
     def __init__(self):
-        self.img_width = 1000
-        self.img_height = 1000
+        self.img_width = config.IMG_SIZE
+        self.img_height = config.IMG_SIZE
 
     def _generate_random_lines(self, lines_numb: int) -> List[Tuple[Tuple[int, int]]]:
         """
@@ -264,8 +265,10 @@ class SquareDetector(BaseImageProcessor):
         t_stop = perf_counter()
         elapsed_time = int((t_stop - t_start) * 1000)  # ms
 
-        img_res = self._draw_result(img, verticies)
+        if not verticies:
+            return None, elapsed_time
 
+        img_res = self._draw_result(img, verticies)
         return img_res, elapsed_time
 
 

@@ -64,6 +64,7 @@ ransacInput.addEventListener('input', function () {
 const generateButton = document.getElementById("generate-img-button");
 
 generateButton.addEventListener("click", async () => {
+    fail.style.display = 'none';
     timestamp = new Date().getTime();
 
     const data = {
@@ -115,8 +116,12 @@ const findButton = document.getElementById("find-square-button");
 //     };
 // });
 
+const fail = htmx.find('#fail');
 
 findButton.addEventListener("click", async () => {
+    
+    fail.style.display = 'none';
+
     const data = {
         _id: timestamp,
         ransac_iterations: ransacInput.value
@@ -142,7 +147,14 @@ findButton.addEventListener("click", async () => {
 
     if (response.ok) {
         const responseData = await response.json();
+        const img = responseData.img;
+        const success = responseData.success;
+
         htmx.find('#image').src = responseData.img;
+        if (!success) {
+            fail.style.display = "block";
+        };
+        
         htmx.find('#elapsed-time-indicator').textContent = `${responseData.elapsed_time} ms`;
     }
 });
