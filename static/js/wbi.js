@@ -93,12 +93,42 @@ generateButton.addEventListener("click", async () => {
 
 const findButton = document.getElementById("find-square-button");
 
-findButton.addEventListener("click", async () => {
+// findButton.addEventListener("click", async () => {
 
+//     const data = {
+//             _id: timestamp,
+//             ransac_iterations: ransacInput.value
+//         };
+
+//     const response = await fetch('/find-square', {
+//         method: "POST",
+//         headers: {
+//             "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify(data),
+//     });
+
+//     if (response.ok) {
+//         const responseData = await response.json();
+//         htmx.find('#image').src = responseData.img;
+//         htmx.find('#elapsed-time-indicator').textContent = `${responseData.elapsed_time} ms`;
+//     };
+// });
+
+
+findButton.addEventListener("click", async () => {
     const data = {
-            _id: timestamp,
-            ransac_iterations: ransacInput.value
-        };
+        _id: timestamp,
+        ransac_iterations: ransacInput.value
+    };
+
+    // Display a loading indicator with multiple dots
+    const loadingIndicator = htmx.find('#elapsed-time-indicator');
+    let dots = 0;
+    const loadingInterval = setInterval(() => {
+        loadingIndicator.textContent = `${'. '.repeat(dots)}`;
+        dots = (dots + 1) % 10; // Cycle through 0, 1, 2, 3
+    }, 300); // Adjust the interval duration as needed
 
     const response = await fetch('/find-square', {
         method: "POST",
@@ -108,9 +138,11 @@ findButton.addEventListener("click", async () => {
         body: JSON.stringify(data),
     });
 
+    clearInterval(loadingInterval); // Clear the loading indicator
+
     if (response.ok) {
         const responseData = await response.json();
         htmx.find('#image').src = responseData.img;
-        htmx.find('#elapsed-time').value = responseData.elapsed_time;
-    };
+        htmx.find('#elapsed-time-indicator').textContent = `${responseData.elapsed_time} ms`;
+    }
 });
