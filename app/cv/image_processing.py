@@ -178,7 +178,7 @@ class SquareDetector(BaseImageProcessor):
         """
         img_canny = cv2.Canny(img, 50, 150, apertureSize=3)
         lines = cv2.HoughLinesP(
-            img_canny, 1, np.pi / 180, threshold=20, minLineLength=20, maxLineGap=5
+            img_canny, 1, np.pi / 180, threshold=10, minLineLength=10, maxLineGap=2
         )
 
         height, width = img.shape

@@ -231,7 +231,7 @@ class MathProcessor:
         black_pixels = np.count_nonzero(img_masked == 0)
 
         fake_square = False
-        if black_pixels < 0.9 * footage:
+        if black_pixels < 0.98 * footage:
             fake_square = True
 
         return fake_square, black_pixels
