@@ -3,14 +3,14 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from config import config
+from dependencies import db
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from routers import main_tab
-from dependencies import db
 
-logger = logging.getLogger("pet")
+logger = logging.getLogger("find_square")
 
 
 @asynccontextmanager

@@ -10,7 +10,7 @@ from cv.image_processing import (
 from models import ImageData, ImageDataUpdate
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
-logger = logging.getLogger("pet")
+logger = logging.getLogger("find_square")
 
 
 class MongoManager:
@@ -28,13 +28,6 @@ class MongoManager:
         logger.info("Closing connection with MongoDB.")
         self.client.close()
         logger.info("Closed connection with MongoDB.")
-
-    # async def get_posts(self) -> List[PostDB]:
-    #     posts_list = []
-    #     posts_q = self.db.posts.find()
-    #     async for post in posts_q:
-    #         posts_list.append(PostDB(**post, id=post['_id']))
-    #     return posts_list
 
     async def get_image(self, id: int) -> ImageData:
         image_q = await self.db.images.find_one({"_id": id})
