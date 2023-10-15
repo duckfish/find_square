@@ -34,6 +34,7 @@ async def startup():
 
 
 async def shutdown():
+    await db.close_database_connection()
     logger.info("Application shutdown complete.")
 
 
@@ -44,12 +45,6 @@ async def index(request: Request):
         "host": config.UVICORN_SERVER_HOST,
         "port": str(config.UVICORN_SERVER_PORT),
     }
-
-    # headers = {
-    #     "Cache-Control": "no-cache, no-store, must-revalidate",
-    #     "Pragma": "no-cache",
-    #     "Expires": "0",
-    # }
 
     return templates.TemplateResponse("index.html", context)
 
