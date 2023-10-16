@@ -139,6 +139,12 @@ class MathProcessor:
         distance = math.hypot(x2 - x1, y2 - y1)
         return distance
 
+    def _equal_sides(self, sides, tolerance=0.005):
+        reference_distance = np.mean(sides)
+        return all(
+            math.isclose(reference_distance, dist, rel_tol=tolerance) for dist in sides
+        )
+
     def _is_square(self, quad: List[Tuple[int, int]]) -> Tuple[bool, float]:
         """
         Check if the given quadrilateral is a square and calculate the maximum error.
@@ -164,17 +170,10 @@ class MathProcessor:
         distances.remove(diagonal2)
 
         error_max = 0
-        if abs(diagonal1 - diagonal2) > diagonal1 * 0.05:
+        if abs(diagonal1 - diagonal2) > diagonal1 * 0.01:
             return False, error_max
 
-        for i in range(len(distances)):
-            for j in range(i + 1, len(distances)):
-                error = abs(distances[i] - distances[j])
-                if error > error_max:
-                    error_max = error
-        if not all(error_max < x * 0.05 for x in distances):
-            return False, error_max
-        return True, error_max
+        return self._equal_sides(distances), error_max
 
     def _sort_quad(self, quad: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
         """
@@ -234,7 +233,7 @@ class MathProcessor:
         if black_pixels < 0.98 * footage:
             fake_square = True
 
-        return fake_square, black_pixels
+        return fake_square, black_pixels, footage
 
     def get_vertices_ransac(
         self,
@@ -256,6 +255,7 @@ class MathProcessor:
         """
         best_square_vertices = None
         black_pixels_max = 0
+        footage_best = 0
 
         for _ in range(ransac_iterations):
             # Randomly sample four intersections
@@ -264,10 +264,14 @@ class MathProcessor:
                 is_square, _ = self._is_square(quad)
                 if is_square:
                     # Calculate the black pixels
-                    fake_square, black_pixels = self._count_black_pixels(quad, img)
+                    fake_square, black_pixels, footage = self._count_black_pixels(
+                        quad, img
+                    )
                     if not fake_square and black_pixels > black_pixels_max:
                         best_square_vertices = quad
                         black_pixels_max = black_pixels
+                        footage_best = footage
 
         if best_square_vertices:
+            print(black_pixels_max, footage_best)
             return self._sort_quad(best_square_vertices)
