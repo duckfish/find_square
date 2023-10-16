@@ -164,7 +164,11 @@ class SquareDetector(BaseImageProcessor):
         cleaned_image = cv2.medianBlur(img, kernel_size)
         cleaned_image = cv2.medianBlur(cleaned_image, kernel_size)
 
-        return cleaned_image
+        kernel = np.ones((5, 5), np.uint8)
+        eroded_image = cv2.erode(cleaned_image, kernel, iterations=1)
+        dilated_image = cv2.dilate(eroded_image, kernel, iterations=1)
+
+        return dilated_image
 
     def _get_lines_intersections(self, img: np.ndarray) -> List[Tuple[int, int]]:
         """
