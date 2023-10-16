@@ -11,7 +11,7 @@ class Config(BaseSettings):
     IMG_SIZE: int
 
     class Config:
-        env_file = ".env"
+        env_file = "find_square.env"
 
 
 config = Config()
