@@ -19,8 +19,10 @@ class MathProcessor:
         Returns:
             List[Tuple[int, int]]: A list of four tuples, each containing (x, y) coordinates of a randomly selected points.
         """
-
-        quad = random.sample(intersections, 4)
+        try:
+            quad = random.sample(intersections, 4)
+        except ValueError:
+            return None
         return quad
 
     def _perpendicular_lines(
@@ -233,7 +235,7 @@ class MathProcessor:
         if black_pixels < 0.98 * footage:
             fake_square = True
 
-        return fake_square, black_pixels, footage
+        return fake_square, black_pixels
 
     def get_vertices_ransac(
         self,
@@ -255,7 +257,6 @@ class MathProcessor:
         """
         best_square_vertices = None
         black_pixels_max = 0
-        footage_best = 0
 
         for _ in range(ransac_iterations):
             # Randomly sample four intersections
@@ -264,14 +265,10 @@ class MathProcessor:
                 is_square, _ = self._is_square(quad)
                 if is_square:
                     # Calculate the black pixels
-                    fake_square, black_pixels, footage = self._count_black_pixels(
-                        quad, img
-                    )
+                    fake_square, black_pixels = self._count_black_pixels(quad, img)
                     if not fake_square and black_pixels > black_pixels_max:
                         best_square_vertices = quad
                         black_pixels_max = black_pixels
-                        footage_best = footage
 
         if best_square_vertices:
-            print(black_pixels_max, footage_best)
             return self._sort_quad(best_square_vertices)
