@@ -1,7 +1,7 @@
 import base64
 import random
 from time import perf_counter
-from typing import List, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 import cv2
 import numpy as np
@@ -10,7 +10,16 @@ from cv.math_processor import MathProcessor
 
 
 class BaseImageProcessor:
-    def get_img_base64(self, img: np.ndarray):
+    def get_img_base64(self, img: np.ndarray) -> str:
+        """
+        Convert the input image array into a base64 encoded JPEG image string.
+
+        Args:
+            img (np.ndarray): Input image array.
+
+        Returns:
+            str: Base64 encoded image string with the appropriate data URI prefix.
+        """
         _, img_encoded = cv2.imencode(".jpeg", img)
         img_base64 = base64.b64encode(img_encoded)
         img_base64 = "data:img/jpeg;base64," + img_base64.decode("utf-8")
@@ -32,8 +41,9 @@ class ImageGenerator(BaseImageProcessor):
             lines_numb (int): The number of random lines to generate.
 
         Returns:
-            List[Tuple[Tuple[int, int]]]: A list of tuples, each containing two tuples representing
-            the coordinates of the start and end points of a randomly generated line segment.
+            List[Tuple[Tuple[int, int]]]: A list of tuples, each containing two tuples
+            representing the coordinates of the start and end points of
+            a randomly generated line segment.
         """
         lines = []
         for _ in range(lines_numb):
@@ -58,8 +68,9 @@ class ImageGenerator(BaseImageProcessor):
             square_size (int): The size of the square's sides.
 
         Returns:
-            Tuple[Tuple[int, int]]: A tuple containing two tuples, each containing (x, y) coordinates
-            representing the top-left and bottom-right corners of the randomly positioned square.
+            Tuple[Tuple[int, int]]: A tuple containing two tuples, each containing
+            (x, y) coordinates representing the top-left and bottom-right corners
+            of the randomly positioned square.
         """
         shift = int(square_size * 1.2)  # A square to be within image canvas
         x_square = random.randint(0, self.img_width - shift)
@@ -76,8 +87,8 @@ class ImageGenerator(BaseImageProcessor):
 
         Args:
             img (np.ndarray): The input img.
-            salt_prob (float): Probability of adding salt noise.
-            pepper_prob (float): Probability of adding pepper noise.
+            salt_prob (float): Probability of adding salt noise. Default is 0.1
+            pepper_prob (float): Probability of adding pepper noise. Default is 0.06.
 
         Returns:
             np.ndarray: The img with added salt and pepper noise.
@@ -135,36 +146,42 @@ class SquareDetector(BaseImageProcessor):
     A class for detecting and marking a square in an image.
 
     Attributes:
-        COLOR_RESULT (tuple): The color for marking the detected square in RGBA format.
+        COLOR_RESULT (tuple): The color for marking the detected square in RGB format.
 
     Methods:
-        find_square(img: np.ndarray) -> str:
-            Detects a square in the input image and returns the result as a base64-encoded image.
+        find_square(img: np.ndarray) -> np.ndarray:
+            Detects a square in the input image and returns the result as
+            a np.ndarray image.
 
     """
 
-    COLOR_RESULT = (255, 162, 38, 128)
-    COLOR_RESULT = (0, 92, 250, 255)
+    COLOR_RESULT = (0, 92, 250)
 
     def __init__(self) -> None:
         super().__init__()
         self.math_processor = MathProcessor()
 
-    def _remove_noise(self, img: np.ndarray, kernel_size: int = 3) -> np.ndarray:
+    def _remove_noise(
+        self, img: np.ndarray, median_kernel_size: int = 3, morph_kernel_size: int = 5
+    ) -> np.ndarray:
         """
-        Remove salt and pepper noise from an image using median filtering.
+        Remove salt and pepper noise from an image using median filtering
+        and additional erosion and dilation operations.
 
         Args:
-            image (np.ndarray): The noisy input image.
-            kernel_size (int): The size of the median filter kernel. Default is 3.
+            img (np.ndarray): The noisy input image.
+            median_kernel_size (int): The size of the median filter kernel.
+            Default is 3.
+            morph_kernel_size (int): The size of the kernel for morphological
+            operations. Default is 5.
 
         Returns:
             np.ndarray: The cleaned image.
         """
-        cleaned_image = cv2.medianBlur(img, kernel_size)
-        cleaned_image = cv2.medianBlur(cleaned_image, kernel_size)
+        cleaned_image = cv2.medianBlur(img, median_kernel_size)
+        cleaned_image = cv2.medianBlur(cleaned_image, median_kernel_size)
 
-        kernel = np.ones((5, 5), np.uint8)
+        kernel = np.ones((morph_kernel_size, morph_kernel_size), np.uint8)
         eroded_image = cv2.erode(cleaned_image, kernel, iterations=1)
         dilated_image = cv2.dilate(eroded_image, kernel, iterations=1)
 
@@ -172,13 +189,15 @@ class SquareDetector(BaseImageProcessor):
 
     def _get_lines_intersections(self, img: np.ndarray) -> List[Tuple[int, int]]:
         """
-        Find intersections of lines detected in the input image using the Hough Line Transform.
+        Find intersections of lines detected in the input image
+        using the Hough Line Transform.
 
         Args:
             img (np.ndarray): Input image as a NumPy array.
 
         Returns:
-            List[Tuple[int, int]]: A list of tuples containing (x, y) coordinates of intersections.
+            List[Tuple[int, int]]: A list of tuples containing (x, y) coordinates
+            of intersections.
         """
         img_canny = cv2.Canny(img, 50, 150, apertureSize=3)
         lines = cv2.HoughLinesP(
@@ -187,16 +206,6 @@ class SquareDetector(BaseImageProcessor):
 
         height, width = img.shape
         intersections = self.math_processor.find_intersections(lines, width, height)
-
-        # img_res = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-        # for line in lines:
-        #     x1, y1, x2, y2 = line[0]
-        #     cv2.line(img_res, (x1, y1), (x2, y2), (0, 0, 255), 1)
-        # for point in intersections:
-        #     cv2.circle(img_res, point, 2, (0, 255, 0), 1)
-        # cv2.imshow("test", img_res)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
 
         return intersections
 
@@ -226,18 +235,20 @@ class SquareDetector(BaseImageProcessor):
 
     def _draw_result(
         self, img: np.ndarray, verticies: Sequence[Tuple[int, int]]
-    ) -> str:
+    ) -> np.ndarray:
         """
-        Draw the result on the input image by marking the detected vertices with circles.
+        Draw the result on the input image by marking the detected vertices
+        with circles.
 
         Args:
             img (np.ndarray): Input image as a NumPy array.
-            verticies (Sequence[Tuple[int, int]]): A sequence of (x, y) coordinates of vertices.
+            verticies (Sequence[Tuple[int, int]]): A sequence of (x, y) coordinates
+            of vertices.
 
         Returns:
-            str: Base64-encoded image result as a string.
+            np.ndarray: Image result.
         """
-        img_res = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
+        img_res = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         for point in verticies:
             x, y = point
             cv2.circle(img_res, (x, y), 5, self.COLOR_RESULT, -1)
@@ -248,19 +259,18 @@ class SquareDetector(BaseImageProcessor):
 
     def find_square(
         self, img: np.ndarray, ransac_iterations: int
-    ) -> Tuple[np.ndarray, int]:
+    ) -> Tuple[Optional[np.ndarray], int]:
         """
-        Find a square in the input image and return a new image with the square outlined.
+        Find a square in the input image and return a new image with
+        the square outlined.
 
         Args:
             img (np.ndarray): Input image as a NumPy array.
+            ransac_iterations (int): The number of RANSAC iterations.
 
         Returns:
-            str: Base64-encoded image result as a string.
-
-        This method processes the input image to detect a square, removes noise, thresholds
-        the image, identifies the square's vertices, and outlines the square in the result image.
-        The result image is encoded as a base64 string and returned.
+            Tuple[Optional[np.ndarray], int]: A tuple containing the resulting image
+            with the square outlined and the elapsed time in milliseconds.
         """
         t_start = perf_counter()
         img_cleaned = self._remove_noise(img)
