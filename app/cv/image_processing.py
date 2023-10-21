@@ -27,6 +27,22 @@ class BaseImageProcessor:
 
 
 class ImageGenerator(BaseImageProcessor):
+    """
+    A class responsible for generating noisy images with random straight
+    lines and filled squares.
+
+    Attributes:
+        img_height (int): The height of the generated image.
+        img_width (int): The width of the generated image.
+
+    Methods:
+        generate_img(
+            self, square_size: int, lines_numb: int, line_thickness: int
+        ) -> np.ndarray:
+            Generates a noisy image with random straight lines and a filled square.
+
+    """
+
     ELEMENTS_COLOR = (0, 0, 0)
 
     def __init__(self):
@@ -144,9 +160,6 @@ class ImageGenerator(BaseImageProcessor):
 class SquareDetector(BaseImageProcessor):
     """
     A class for detecting and marking a square in an image.
-
-    Attributes:
-        COLOR_RESULT (tuple): The color for marking the detected square in RGB format.
 
     Methods:
         find_square(img: np.ndarray) -> np.ndarray:
