@@ -21,12 +21,12 @@ linesNumberInput.addEventListener('input', function () {
     linesNumberIndicator.textContent = linesNumberInput.value;
 });
 
-const linesWidthInput = document.getElementById('line-width');
-const linesWidthIndicator = document.getElementById('line-width-indicator');
-linesWidthIndicator.textContent = linesWidthInput.value;
+const lineThicknessInput = document.getElementById('line-thickness');
+const lineThicknessIndicator = document.getElementById('line-thickness-indicator');
+lineThicknessIndicator.textContent = lineThicknessInput.value;
 
-linesWidthInput.addEventListener('input', function () {
-    linesWidthIndicator.textContent = linesWidthInput.value;
+lineThicknessInput.addEventListener('input', function () {
+    lineThicknessIndicator.textContent = lineThicknessInput.value;
 });
 
 const ransacInput = document.getElementById('ransac');
@@ -49,7 +49,7 @@ generateButton.addEventListener("click", async () => {
             session_id: sessionId,
             square_size: squareSizeInput.value,
             lines_numb: linesNumberInput.value,
-            line_thickness: linesWidthInput.value
+            line_thickness: lineThicknessInput.value
     }
 
     const response = await fetch('/generate-image', {
