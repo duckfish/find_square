@@ -8,18 +8,17 @@ from dependencies import (
     get_square_detector,
 )
 from fastapi import APIRouter, Depends
-from models import (
-    ImageCreateRequest,
-    ImageDataUpdate,
-    ImageFindRequest,
-    ImageParams,
-    UserData,
-)
+from models import ImageCreateRequest, ImageDataUpdate, ImageFindRequest
 
 router = APIRouter(tags=["main"])
 
 
-@router.post("/generate-image")
+@router.post(
+    "/generate-image",
+    summary="Generate an image",
+    description="Generate an image with following params: square size, lines number,\
+    line thickness",
+)
 async def generate_image(
     image_create: ImageCreateRequest,
     image_generator: ImageGenerator = Depends(get_image_generator),
@@ -39,7 +38,11 @@ async def generate_image(
     return {"img": img_base64}
 
 
-@router.post("/find-square")
+@router.post(
+    "/find-square",
+    summary="Find square",
+    description="Find square with specified RANCAC iterations",
+)
 async def test_image(
     image_find: ImageFindRequest,
     db: MongoManager = Depends(get_database),
