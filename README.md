@@ -8,4 +8,6 @@ The web application is designed to showcase the effectiveness of the RANSAC algo
 
 The efficiency and precision of the detection process are dependent on several factors, including the number of RANSAC iterations and the complexity of the input image.
 
-For any inquiries or feedback, please don't hesitate to reach me out at e.grefenshtein@icloud.com.
+## Contact
+
+Evgeniy Grefenshtein e.grefenshtein@icloud.com
