@@ -8,6 +8,10 @@ The web application is designed to showcase the effectiveness of the RANSAC algo
 
 The efficiency and precision of the detection process are dependent on several factors, including the number of RANSAC iterations and the complexity of the input image.
 
+## License
+
+Distributed under the MIT License. See LICENSE.txt for more information.
+
 ## Contact
 
 Evgeniy Grefenshtein e.grefenshtein@icloud.com
