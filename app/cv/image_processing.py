@@ -4,9 +4,47 @@ from time import perf_counter
 from typing import List, Optional, Sequence, Tuple
 
 import cv2
+import keras
+import keras.backend as K
 import numpy as np
 from config import config
 from cv.math_processor import MathProcessor
+from keras import models
+
+
+@keras.saving.register_keras_serializable()
+def iou_metric(y_true, y_pred):
+    # Extract coordinates from tensors
+    x1, y1, x2, y2 = y_true[:, 0], y_true[:, 1], y_true[:, 2], y_true[:, 3]
+    x1_pred, y1_pred, x2_pred, y2_pred = (
+        y_pred[:, 0],
+        y_pred[:, 1],
+        y_pred[:, 2],
+        y_pred[:, 3],
+    )
+
+    # Calculate intersection coordinates
+    x1_intersection = K.maximum(x1, x1_pred)
+    y1_intersection = K.maximum(y1, y1_pred)
+    x2_intersection = K.minimum(x2, x2_pred)
+    y2_intersection = K.minimum(y2, y2_pred)
+
+    # Calculate intersection area
+    intersection_area = K.maximum(0.0, x2_intersection - x1_intersection) * K.maximum(
+        0.0, y2_intersection - y1_intersection
+    )
+
+    # Calculate union area
+    area_true = (x2 - x1) * (y2 - y1)
+    area_pred = (x2_pred - x1_pred) * (y2_pred - y1_pred)
+    union_area = area_true + area_pred - intersection_area
+
+    # Calculate IoU
+    iou = intersection_area / (
+        union_area + K.epsilon()
+    )  # Adding epsilon to avoid division by zero
+
+    return K.mean(iou)
 
 
 class BaseImageProcessor:
@@ -173,6 +211,7 @@ class SquareDetector(BaseImageProcessor):
     def __init__(self) -> None:
         super().__init__()
         self.math_processor = MathProcessor()
+        self.model = models.load_model(config.MODEL_PATH)
 
     def _remove_noise(
         self, img: np.ndarray, median_kernel_size: int = 3, morph_kernel_size: int = 5
@@ -270,6 +309,16 @@ class SquareDetector(BaseImageProcessor):
         cv2.polylines(img_res, [verticies], True, self.COLOR_RESULT, 2)
         return img_res
 
+    def _preprocess_img(self, img: np.ndarray):
+        target_size = self.model.layers[0].input_shape[:2]
+        img = cv2.resize(img, target_size)
+        img = np.expand_dims(
+            img, axis=-1
+        )  # Add an extra dimension for grayscale channel
+        img = [img]
+        img = img.astype("float32") / 255.0
+        return img
+
     def find_square(
         self, img: np.ndarray, ransac_iterations: int
     ) -> Tuple[Optional[np.ndarray], int]:
@@ -289,6 +338,36 @@ class SquareDetector(BaseImageProcessor):
         img_cleaned = self._remove_noise(img)
         _, img_thr = cv2.threshold(img_cleaned, 128, 255, cv2.THRESH_BINARY)
         verticies = self._get_square_vertices(img_thr, ransac_iterations)
+        t_stop = perf_counter()
+        elapsed_time = int((t_stop - t_start) * 1000)  # ms
+
+        if not verticies:
+            return None, elapsed_time
+
+        img_res = self._draw_result(img, verticies)
+        return img_res, elapsed_time
+
+    def find_square_m(
+        self,
+        img: np.ndarray,
+    ) -> Tuple[Optional[np.ndarray], int]:
+        """
+        Find a square in the input image and return a new image with
+        the square outlined.
+
+        Args:
+            img (np.ndarray): Input image as a NumPy array.
+            ransac_iterations (int): The number of RANSAC iterations.
+
+        Returns:
+            Tuple[Optional[np.ndarray], int]: A tuple containing the resulting image
+            with the square outlined and the elapsed time in milliseconds.
+        """
+        t_start = perf_counter()
+        # img_cleaned = self._remove_noise(img)
+        # _, img_thr = cv2.threshold(img_cleaned, 128, 255, cv2.THRESH_BINARY)
+        img_preprocessed = self._preprocess_img(img)
+        verticies = self.model.predict(img_preprocessed)
         t_stop = perf_counter()
         elapsed_time = int((t_stop - t_start) * 1000)  # ms
 

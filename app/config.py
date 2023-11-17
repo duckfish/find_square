@@ -9,6 +9,7 @@ class Config(BaseSettings):
     DB_NAME: str
     LOG_CONFIG: str = "app/log_config.yaml"
     IMG_SIZE: int
+    MODEL_PATH: str
 
     class Config:
         env_file = "find_square.env"

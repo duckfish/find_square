@@ -162,3 +162,5 @@ cython_debug/
 
 image_testing/
 gif/temp
+*.keras
+*.h5
