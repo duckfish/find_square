@@ -310,13 +310,13 @@ class SquareDetector(BaseImageProcessor):
         return img_res
 
     def _preprocess_img(self, img: np.ndarray):
-        target_size = self.model.layers[0].input_shape[:2]
+        target_size = self.model.layers[0].input_shape[1:3]
         img = cv2.resize(img, target_size)
         img = np.expand_dims(
             img, axis=-1
         )  # Add an extra dimension for grayscale channel
         img = [img]
-        img = img.astype("float32") / 255.0
+        img = np.array(img, dtype="float32") / 255.0
         return img
 
     def find_square(
