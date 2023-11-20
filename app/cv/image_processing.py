@@ -1,10 +1,8 @@
 import base64
-import os
 import random
 from time import perf_counter
 from typing import List, Optional, Sequence, Tuple
 
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 import cv2
 import keras
 import keras.backend as K
@@ -288,6 +286,19 @@ class SquareDetector(BaseImageProcessor):
 
         return square_vertices
 
+    def _preprocess_img(self, img: np.ndarray):
+        img = cv2.resize(img, self.model_img_size)
+        img = np.expand_dims(
+            img, axis=-1
+        )  # Add an extra dimension for grayscale channel
+        img = [img]
+        img = np.array(img, dtype="float32") / 255.0
+        return img
+
+    def _process_verticies_m(self, verticies: np.ndarray):
+        verticies = map(int, verticies[0] * config.IMG_SIZE)
+        return verticies
+
     def _draw_result(
         self, img: np.ndarray, verticies: Sequence[Tuple[int, int]], rectangle: bool
     ) -> np.ndarray:
@@ -315,21 +326,6 @@ class SquareDetector(BaseImageProcessor):
             verticies = verticies.reshape((-1, 1, 2))
             cv2.polylines(img_res, [verticies], True, self.COLOR_RESULT, 2)
         return img_res
-
-    def _preprocess_img(self, img: np.ndarray):
-        img = cv2.resize(img, self.model_img_size)
-        img = np.expand_dims(
-            img, axis=-1
-        )  # Add an extra dimension for grayscale channel
-        img = [img]
-        img = np.array(img, dtype="float32") / 255.0
-        return img
-
-    def _process_verticies_m(self, verticies: np.ndarray):
-        multiplier = config.IMG_SIZE / self.model_img_size[0]
-        # verticies = map(int, verticies[0] * self.model_img_size[0] * multiplier)
-        verticies = map(int, verticies[0] * 250)
-        return verticies
 
     def find_square(
         self, img: np.ndarray, ransac_iterations: int
@@ -376,16 +372,14 @@ class SquareDetector(BaseImageProcessor):
             with the square outlined and the elapsed time in milliseconds.
         """
         t_start = perf_counter()
-        # img_cleaned = self._remove_noise(img)
-        # _, img_thr = cv2.threshold(img_cleaned, 128, 255, cv2.THRESH_BINARY)
-        img_preprocessed = self._preprocess_img(img)
+        img_cleaned = self._remove_noise(img)
+        img_preprocessed = self._preprocess_img(img_cleaned)
         verticies = self.model.predict(img_preprocessed)
         verticies = self._process_verticies_m(verticies)
         t_stop = perf_counter()
         elapsed_time = int((t_stop - t_start) * 1000)  # ms
 
-        img_test = cv2.resize(img, (250, 250))
-        img_res = self._draw_result(img_test, verticies, rectangle=True)
+        img_res = self._draw_result(img, verticies, rectangle=True)
         return img_res, elapsed_time
 
 
