@@ -53,9 +53,7 @@ async def test_image(
         (config.IMG_SIZE, config.IMG_SIZE)
     )
 
-    image_result, elapsed_time = square_detector.find_square(
-        image, image_find.ransac_iterations
-    )
+    image_result, elapsed_time = square_detector.find_square_m(image)
     if image_result is not None:
         img_base64 = square_detector.get_img_base64(image_result)
         image_result = image_result.tobytes()

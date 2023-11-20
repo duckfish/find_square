@@ -1,8 +1,10 @@
 import base64
+import os
 import random
 from time import perf_counter
 from typing import List, Optional, Sequence, Tuple
 
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 import cv2
 import keras
 import keras.backend as K
@@ -212,6 +214,7 @@ class SquareDetector(BaseImageProcessor):
         super().__init__()
         self.math_processor = MathProcessor()
         self.model = models.load_model(config.MODEL_PATH)
+        self.model_img_size = self.model.layers[0].input_shape[1:3]
 
     def _remove_noise(
         self, img: np.ndarray, median_kernel_size: int = 3, morph_kernel_size: int = 5
@@ -286,7 +289,7 @@ class SquareDetector(BaseImageProcessor):
         return square_vertices
 
     def _draw_result(
-        self, img: np.ndarray, verticies: Sequence[Tuple[int, int]]
+        self, img: np.ndarray, verticies: Sequence[Tuple[int, int]], rectangle: bool
     ) -> np.ndarray:
         """
         Draw the result on the input image by marking the detected vertices
@@ -301,23 +304,32 @@ class SquareDetector(BaseImageProcessor):
             np.ndarray: Image result.
         """
         img_res = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-        for point in verticies:
-            x, y = point
-            cv2.circle(img_res, (x, y), 5, self.COLOR_RESULT, -1)
-        verticies = np.array(verticies, np.int32)
-        verticies = verticies.reshape((-1, 1, 2))
-        cv2.polylines(img_res, [verticies], True, self.COLOR_RESULT, 2)
+        # for point in verticies:
+        #     x, y = point
+        #     cv2.circle(img_res, (x, y), 5, self.COLOR_RESULT, -1)
+        if rectangle:
+            x1, y1, x2, y2 = verticies
+            cv2.rectangle(img_res, (x1, y1), (x2, y2), self.COLOR_RESULT, 2)
+        else:
+            verticies = np.array(verticies, np.int32)
+            verticies = verticies.reshape((-1, 1, 2))
+            cv2.polylines(img_res, [verticies], True, self.COLOR_RESULT, 2)
         return img_res
 
     def _preprocess_img(self, img: np.ndarray):
-        target_size = self.model.layers[0].input_shape[1:3]
-        img = cv2.resize(img, target_size)
+        img = cv2.resize(img, self.model_img_size)
         img = np.expand_dims(
             img, axis=-1
         )  # Add an extra dimension for grayscale channel
         img = [img]
         img = np.array(img, dtype="float32") / 255.0
         return img
+
+    def _process_verticies_m(self, verticies: np.ndarray):
+        multiplier = config.IMG_SIZE / self.model_img_size[0]
+        # verticies = map(int, verticies[0] * self.model_img_size[0] * multiplier)
+        verticies = map(int, verticies[0] * 250)
+        return verticies
 
     def find_square(
         self, img: np.ndarray, ransac_iterations: int
@@ -344,7 +356,7 @@ class SquareDetector(BaseImageProcessor):
         if not verticies:
             return None, elapsed_time
 
-        img_res = self._draw_result(img, verticies)
+        img_res = self._draw_result(img, verticies, rectangle=False)
         return img_res, elapsed_time
 
     def find_square_m(
@@ -368,13 +380,12 @@ class SquareDetector(BaseImageProcessor):
         # _, img_thr = cv2.threshold(img_cleaned, 128, 255, cv2.THRESH_BINARY)
         img_preprocessed = self._preprocess_img(img)
         verticies = self.model.predict(img_preprocessed)
+        verticies = self._process_verticies_m(verticies)
         t_stop = perf_counter()
         elapsed_time = int((t_stop - t_start) * 1000)  # ms
 
-        if not verticies:
-            return None, elapsed_time
-
-        img_res = self._draw_result(img, verticies)
+        img_test = cv2.resize(img, (250, 250))
+        img_res = self._draw_result(img_test, verticies, rectangle=True)
         return img_res, elapsed_time
 
 
