@@ -4,12 +4,11 @@ from time import perf_counter
 from typing import List, Optional, Sequence, Tuple
 
 import cv2
-import keras
-import keras.backend as K
+import keras.backend
+import keras.models
 import numpy as np
 from config import config
 from cv.math_processor import MathProcessor
-from keras import models
 
 
 @keras.saving.register_keras_serializable()
@@ -24,15 +23,15 @@ def iou_metric(y_true, y_pred):
     )
 
     # Calculate intersection coordinates
-    x1_intersection = K.maximum(x1, x1_pred)
-    y1_intersection = K.maximum(y1, y1_pred)
-    x2_intersection = K.minimum(x2, x2_pred)
-    y2_intersection = K.minimum(y2, y2_pred)
+    x1_intersection = keras.backend.maximum(x1, x1_pred)
+    y1_intersection = keras.backend.maximum(y1, y1_pred)
+    x2_intersection = keras.backend.minimum(x2, x2_pred)
+    y2_intersection = keras.backend.minimum(y2, y2_pred)
 
     # Calculate intersection area
-    intersection_area = K.maximum(0.0, x2_intersection - x1_intersection) * K.maximum(
-        0.0, y2_intersection - y1_intersection
-    )
+    intersection_area = keras.backend.maximum(
+        0.0, x2_intersection - x1_intersection
+    ) * keras.backend.maximum(0.0, y2_intersection - y1_intersection)
 
     # Calculate union area
     area_true = (x2 - x1) * (y2 - y1)
@@ -41,10 +40,10 @@ def iou_metric(y_true, y_pred):
 
     # Calculate IoU
     iou = intersection_area / (
-        union_area + K.epsilon()
+        union_area + keras.backend.epsilon()
     )  # Adding epsilon to avoid division by zero
 
-    return K.mean(iou)
+    return keras.backend.mean(iou)
 
 
 class BaseImageProcessor:
@@ -211,8 +210,7 @@ class SquareDetector(BaseImageProcessor):
     def __init__(self) -> None:
         super().__init__()
         self.math_processor = MathProcessor()
-        self.model = models.load_model(config.MODEL_PATH)
-        self.model_img_size = self.model.layers[0].input_shape[1:3]
+        self.model = keras.models.load_model(config.MODEL_PATH)
 
     def _remove_noise(
         self, img: np.ndarray, median_kernel_size: int = 3, morph_kernel_size: int = 5
@@ -286,8 +284,18 @@ class SquareDetector(BaseImageProcessor):
 
         return square_vertices
 
-    def _preprocess_img(self, img: np.ndarray):
-        img = cv2.resize(img, self.model_img_size)
+    def _preprocess_img_m(self, img: np.ndarray) -> np.ndarray:
+        """
+        Preprocess the input image for the SquareNet model.
+
+        Args:
+            img (np.ndarray): Input image as a NumPy array.
+
+        Returns:
+            np.ndarray: Preprocessed image ready to be fed into the SquareNet model.
+        """
+        target_img_size = self.model.layers[0].input_shape[1:3]
+        img = cv2.resize(img, target_img_size, cv2.INTER_AREA)
         img = np.expand_dims(
             img, axis=-1
         )  # Add an extra dimension for grayscale channel
@@ -295,7 +303,19 @@ class SquareDetector(BaseImageProcessor):
         img = np.array(img, dtype="float32") / 255.0
         return img
 
-    def _process_verticies_m(self, verticies: np.ndarray):
+    def _process_verticies_m(self, verticies: np.ndarray) -> List[int]:
+        """
+        Convert normalized coordinates to original values.
+
+        Args:
+            vertices (np.ndarray): Normalized coordinates of the detected vertices
+                provided as a NumPy array.
+
+        Returns:
+            List[int]: Original coordinates of the vertices as a list of integers.
+                The coordinates are transformed from normalized values back to their
+                original scale based on the provided IMG_SIZE configuration.
+        """
         verticies = map(int, verticies[0] * config.IMG_SIZE)
         return verticies
 
@@ -310,6 +330,9 @@ class SquareDetector(BaseImageProcessor):
             img (np.ndarray): Input image as a NumPy array.
             verticies (Sequence[Tuple[int, int]]): A sequence of (x, y) coordinates
             of vertices.
+            detector (str): The detector used to identify the shape.
+                Options: "RANSAC" for RANSAC-based detection or "SquareNet" for a neural
+                network-based detector.
 
         Returns:
             np.ndarray: Image result.
@@ -333,7 +356,11 @@ class SquareDetector(BaseImageProcessor):
 
         Args:
             img (np.ndarray): Input image as a NumPy array.
-            ransac_iterations (int): The number of RANSAC iterations.
+            ransac_iterations (int): The number of iterations to perform for the RANSAC
+                algorithm or the corresponding parameter for the selected detector.
+            detector (str): The detector to be used to identify the square.
+                Options: "RANSAC" for RANSAC-based detection or "SquareNet" for
+                a neural network-based detector.
 
         Returns:
             Tuple[Optional[np.ndarray], int]: A tuple containing the resulting image
@@ -346,7 +373,7 @@ class SquareDetector(BaseImageProcessor):
             verticies = self._get_square_vertices(img_thr, ransac_iterations)
         elif detector == "SquareNet":
             img_cleaned = self._remove_noise(img)
-            img_preprocessed = self._preprocess_img(img_cleaned)
+            img_preprocessed = self._preprocess_img_m(img_cleaned)
             verticies = self.model.predict(img_preprocessed)
             verticies = self._process_verticies_m(verticies)
         t_stop = perf_counter()
