@@ -56,6 +56,20 @@
                     <div class="tab-content px-1" id="nav-tabContent">
                         <div class="tab-pane fade show active" id="nav-main" role="tabpanel"
                             aria-labelledby="nav-main-tab">
+                            <div class="d-flex justify-content-between my-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="detector" id="RANSAC-radio">
+                                    <label class="form-check-label" for="RANSAC-radio">
+                                      RANSAC
+                                    </label>
+                                  </div>
+                                  <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="detector" id="SquareNet-radio" checked>
+                                    <label class="form-check-label" for="flexRadioDefault2">
+                                      SquareNet
+                                    </label>
+                                  </div>
+                            </div>
                             <div class="d-grid mt-3">
                                 <button class="btn btn-outline-secondary cstm-btn" id="generate-img-button">Generate
                                     Image

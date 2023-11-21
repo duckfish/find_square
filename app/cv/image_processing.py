@@ -300,7 +300,7 @@ class SquareDetector(BaseImageProcessor):
         return verticies
 
     def _draw_result(
-        self, img: np.ndarray, verticies: Sequence[Tuple[int, int]], rectangle: bool
+        self, img: np.ndarray, verticies: Sequence[Tuple[int, int]], detector: str
     ) -> np.ndarray:
         """
         Draw the result on the input image by marking the detected vertices
@@ -315,20 +315,17 @@ class SquareDetector(BaseImageProcessor):
             np.ndarray: Image result.
         """
         img_res = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-        # for point in verticies:
-        #     x, y = point
-        #     cv2.circle(img_res, (x, y), 5, self.COLOR_RESULT, -1)
-        if rectangle:
-            x1, y1, x2, y2 = verticies
-            cv2.rectangle(img_res, (x1, y1), (x2, y2), self.COLOR_RESULT, 2)
-        else:
+        if detector == "RANSAC":
             verticies = np.array(verticies, np.int32)
             verticies = verticies.reshape((-1, 1, 2))
             cv2.polylines(img_res, [verticies], True, self.COLOR_RESULT, 2)
+        elif detector == "SquareNet":
+            x1, y1, x2, y2 = verticies
+            cv2.rectangle(img_res, (x1, y1), (x2, y2), self.COLOR_RESULT, 2)
         return img_res
 
     def find_square(
-        self, img: np.ndarray, ransac_iterations: int
+        self, img: np.ndarray, ransac_iterations: int, detector: str
     ) -> Tuple[Optional[np.ndarray], int]:
         """
         Find a square in the input image and return a new image with
@@ -343,43 +340,22 @@ class SquareDetector(BaseImageProcessor):
             with the square outlined and the elapsed time in milliseconds.
         """
         t_start = perf_counter()
-        img_cleaned = self._remove_noise(img)
-        _, img_thr = cv2.threshold(img_cleaned, 128, 255, cv2.THRESH_BINARY)
-        verticies = self._get_square_vertices(img_thr, ransac_iterations)
+        if detector == "RANSAC":
+            img_cleaned = self._remove_noise(img)
+            _, img_thr = cv2.threshold(img_cleaned, 128, 255, cv2.THRESH_BINARY)
+            verticies = self._get_square_vertices(img_thr, ransac_iterations)
+        elif detector == "SquareNet":
+            img_cleaned = self._remove_noise(img)
+            img_preprocessed = self._preprocess_img(img_cleaned)
+            verticies = self.model.predict(img_preprocessed)
+            verticies = self._process_verticies_m(verticies)
         t_stop = perf_counter()
         elapsed_time = int((t_stop - t_start) * 1000)  # ms
 
         if not verticies:
             return None, elapsed_time
 
-        img_res = self._draw_result(img, verticies, rectangle=False)
-        return img_res, elapsed_time
-
-    def find_square_m(
-        self,
-        img: np.ndarray,
-    ) -> Tuple[Optional[np.ndarray], int]:
-        """
-        Find a square in the input image and return a new image with
-        the square outlined.
-
-        Args:
-            img (np.ndarray): Input image as a NumPy array.
-            ransac_iterations (int): The number of RANSAC iterations.
-
-        Returns:
-            Tuple[Optional[np.ndarray], int]: A tuple containing the resulting image
-            with the square outlined and the elapsed time in milliseconds.
-        """
-        t_start = perf_counter()
-        img_cleaned = self._remove_noise(img)
-        img_preprocessed = self._preprocess_img(img_cleaned)
-        verticies = self.model.predict(img_preprocessed)
-        verticies = self._process_verticies_m(verticies)
-        t_stop = perf_counter()
-        elapsed_time = int((t_stop - t_start) * 1000)  # ms
-
-        img_res = self._draw_result(img, verticies, rectangle=True)
+        img_res = self._draw_result(img, verticies, detector=detector)
         return img_res, elapsed_time
 
 

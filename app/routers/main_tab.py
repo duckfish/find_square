@@ -41,7 +41,6 @@ async def generate_image(
 @router.post(
     "/find-square",
     summary="Find square",
-    description="Find square with specified RANCAC iterations",
 )
 async def test_image(
     image_find: ImageFindRequest,
@@ -53,7 +52,10 @@ async def test_image(
         (config.IMG_SIZE, config.IMG_SIZE)
     )
 
-    image_result, elapsed_time = square_detector.find_square_m(image)
+    detector = image_find.detector
+    image_result, elapsed_time = square_detector.find_square(
+        image, ransac_iterations=image_find.ransac_iterations, detector=detector
+    )
     if image_result is not None:
         img_base64 = square_detector.get_img_base64(image_result)
         image_result = image_result.tobytes()

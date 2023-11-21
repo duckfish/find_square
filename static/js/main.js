@@ -74,10 +74,17 @@ const fail = htmx.find('#fail');
 findButton.addEventListener("click", async () => {
     
     fail.style.display = 'none';
+    const squareNetRadio = htmx.find('#SquareNet-radio');
+    let detector = 'RANSAC';
+
+    if (squareNetRadio.checked) {
+        detector = 'SquareNet';
+    };
 
     const data = {
         _id: timestamp,
-        ransac_iterations: ransacInput.value
+        ransac_iterations: ransacInput.value,
+        detector: detector,
     };
 
     const loadingIndicator = htmx.find('#elapsed-time-indicator');

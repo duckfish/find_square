@@ -18,6 +18,7 @@ class ImageCreateRequest(BaseModel):
 class ImageFindRequest(BaseModel):
     id: int = Field(alias="_id")
     ransac_iterations: int
+    detector: str
 
 
 class ImageDataUpdate(BaseModel):
