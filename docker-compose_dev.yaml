@@ -10,9 +10,9 @@ services:
     env_file:
       - find_square.env
     ports:
-      - '80:80'
+      - '8000:8000'
     volumes:
-      - /root/projects/find_square/logs:/find_square/logs
+      - /c/Projects/logs:/find_square/logs
     depends_on:
       - mongo
 
@@ -25,4 +25,4 @@ services:
     ports:
       - '27017:27017'
     volumes:
-      - /root/projects/find_square/mongodb:/data/db
+      - /c/Projects/mongodb:/data/db
