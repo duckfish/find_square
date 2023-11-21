@@ -31,6 +31,9 @@ async def generate_image(
         "_id": image_create.id,
         "session_id": image_create.session_id,
         "image": img.tobytes(),
+        "size": image_create.square_size,
+        "lines": image_create.lines_numb,
+        "thickness": image_create.line_thickness,
     }
     await db.add_line(image_data)
 
@@ -58,7 +61,6 @@ async def test_image(
     )
     if image_result is not None:
         img_base64 = square_detector.get_img_base64(image_result)
-        image_result = image_result.tobytes()
         success = True
     else:
         img_base64 = square_detector.get_img_base64(image)
@@ -66,7 +68,9 @@ async def test_image(
 
     image_data_update = {
         "_id": image_find.id,
-        "image_result": image_result,
+        "ransac_iterations": image_find.ransac_iterations,
+        "detector": image_find.detector,
+        "success": success,
         "elapsed_time": elapsed_time,
     }
     image_data_update = ImageDataUpdate(**image_data_update)

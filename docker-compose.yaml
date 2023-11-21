@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   find_square:
-    image: duckfish/find_square:0.1.0
+    image: duckfish/find_square:0.2.0
     build:
       context: .
       dockerfile: dockerfile

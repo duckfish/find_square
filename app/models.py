@@ -5,6 +5,17 @@ class ImageData(BaseModel):
     id: int = Field(alias="_id")
     session_id: str
     image: bytes
+    size: int
+    lines: int
+    thickness: int
+
+
+class ImageDataUpdate(BaseModel):
+    id: int = Field(alias="_id")
+    ransac_iterations: int
+    detector: str
+    success: bool
+    elapsed_time: int
 
 
 class ImageCreateRequest(BaseModel):
@@ -19,9 +30,3 @@ class ImageFindRequest(BaseModel):
     id: int = Field(alias="_id")
     ransac_iterations: int
     detector: str
-
-
-class ImageDataUpdate(BaseModel):
-    id: int = Field(alias="_id")
-    image_result: bytes | None
-    elapsed_time: int
