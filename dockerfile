@@ -7,7 +7,7 @@ COPY ./static /find_square/static
 COPY ./templates /find_square/templates
 COPY ./logs /find_square/logs
 COPY ./requirements.txt /find_square/requirements.txt
-COPY ./SquareNet_2011v1_updated.h5 /find_square/SquareNet_2011v1_updated.h5
+COPY ./SquareNet_2111v2_updated.h5 /find_square/SquareNet_2111v2_updated.h5
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y libffi-dev ffmpeg libsm6 libxext6 && \

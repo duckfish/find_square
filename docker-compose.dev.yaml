@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  find_square:
+    image: duckfish/find_square:0.2.0
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: find_square
+    env_file:
+      - find_square.env
+    expose:
+      - '8000'
+    volumes:
+      - /duckfish/projects/find_square/logs:/find_square/logs
+    depends_on:
+      - mongo
+    labels: # new
+      - "traefik.enable=true"
+      - "traefik.http.routers.fastapi.rule=Host(`fastapi.localhost`)"
+
+  mongo:
+    image: mongo:latest
+    restart: always
+    container_name: mongodb
+    env_file:
+      - db.env
+    ports:
+      - '27017:27017'
+    volumes:
+      - /duckfish/projects/find_square/mongodb:/data/db
+  
+  traefik:
+    image: traefik:v2.9.6
+    ports:
+      - 8008:80
+      - 8081:8080
+    volumes:
+      - "./traefik.dev.toml:/etc/traefik/traefik.toml"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
