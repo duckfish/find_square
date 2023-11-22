@@ -56,24 +56,25 @@
                     <div class="tab-content px-1" id="nav-tabContent">
                         <div class="tab-pane fade show active" id="nav-main" role="tabpanel"
                             aria-labelledby="nav-main-tab">
-                            <div class="d-flex justify-content-between my-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="detector" id="RANSAC-radio">
-                                    <label class="form-check-label" for="RANSAC-radio">
-                                      RANSAC
-                                    </label>
-                                  </div>
-                                  <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="detector" id="SquareNet-radio" checked>
-                                    <label class="form-check-label" for="flexRadioDefault2">
-                                      SquareNet
-                                    </label>
-                                  </div>
-                            </div>
+                            
                             <div class="d-grid mt-3">
                                 <button class="btn btn-outline-secondary cstm-btn" id="generate-img-button">Generate
                                     Image
                                 </button>
+                                <div class="d-flex justify-content-between mt-5">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="detector" id="RANSAC-radio">
+                                        <label class="form-check-label" for="RANSAC-radio">
+                                          RANSAC
+                                        </label>
+                                      </div>
+                                      <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="detector" id="SquareNet-radio" checked>
+                                        <label class="form-check-label" for="flexRadioDefault2">
+                                          SquareNet
+                                        </label>
+                                      </div>
+                                </div>
                                 <button class="btn btn-outline-secondary cstm-btn mt-4" id="find-square-button">Find
                                     Square
                                 </button>
@@ -109,10 +110,13 @@
                         <div class="tab-pane fade" id="nav-about" role="tabpanel" aria-labelledby="nav-about-tab">
                             <div class="mt-3">
                                 <p class="lead text-start">
-                                    The app is designed to assess the effectiveness of the RANSAC-based algorithm in identifying shapes that may have unclear or partially defined edges.
+                                    This web application evaluates the performance of the RANSAC-based algorithm and SquareNet CNN in accurately identifying shapes with unclear or partially defined edges. Users can choose between the detectors to compare their accuracy and efficiency.
                                 </p>
                                 <p class="lead text-start">
-                                    Please note that the quality of detection and processing time may vary depending on factors such as the number of RANSAC iterations and the complexity of the input image.
+                                    Please note that the quality of detection and processing time may vary depending on factors such as the number of RANSAC iterations, complexity of the image and the capabilities of the SquareNet CNN.
+                                </p>
+                                <p class="lead text-start">
+                                    Both the RANSAC-based algorithm and SquareNet were designed from scratch.
                                 </p>
                                 <p class="lead text-start"> 
                                     If you have questions or feedback, please don't hesitate to contact me at:

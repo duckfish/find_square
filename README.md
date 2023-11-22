@@ -1,12 +1,12 @@
 # Find Square
 
-The web application with RANSAC-based algorithm for finding square shape.
+The web application with RANSAC-based algorithm and SquareNet CNN for finding square shape.
 
 ## About
 
-The web application is designed to showcase the effectiveness of the RANSAC algorithm in identifying shapes with indistinct or unclear boundaries. The platform serves as a tool to test and evaluate the robustness and accuracy of the RANSAC-based detection system, particularly in scenarios where shape detection might be challenging. E.g. shape crossed by lines. 
-
-The efficiency and precision of the detection process are dependent on several factors, including the number of RANSAC iterations and the complexity of the input image.
+This web application evaluates the performance of the RANSAC-based algorithm and SquareNet CNN in accurately identifying shapes with unclear or partially defined edges. Users can choose between the detectors to compare their accuracy and efficiency.
+Please note that the quality of detection and processing time may vary depending on factors such as the number of RANSAC iterations, complexity of the image and the capabilities of the SquareNet CNN.
+Both the RANSAC-based algorithm and SquareNet were designed from scratch.
 
 ## License
 
