@@ -164,3 +164,4 @@ image_testing/
 gif/temp
 *.keras
 *.h5
+*prod*
