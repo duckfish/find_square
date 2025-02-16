@@ -11,7 +11,7 @@ services:
     expose:
       - '8000'
     volumes:
-      - /duckfish/projects/find_square/logs:/find_square/logs
+      - ./logs:/find_square/logs
     depends_on:
       - mongo
     labels:
@@ -27,7 +27,7 @@ services:
     ports:
       - '27017:27017'
     volumes:
-      - /duckfish/projects/find_square/mongodb:/data/db
+      - ./mongodb:/data/db
   
   traefik:
     image: traefik:v2.9.6
