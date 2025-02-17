@@ -57,3 +57,4 @@ async def get_square_detector() -> SquareDetector:
 
 async def get_image_generator() -> ImageGenerator:
     return image_generator
+    return image_generator

@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from config import config
+from db import SQLModel, engine
 from dependencies import db
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -29,7 +30,7 @@ templates = Jinja2Templates(directory="templates")
 
 
 async def startup():
-    await db.connect_to_database(config.DB_URL)
+    SQLModel.metadata.create_all(engine)
     logger.info("Application startup complete.")
 
 
