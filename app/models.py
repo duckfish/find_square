@@ -1,4 +1,19 @@
 from pydantic import BaseModel, Field
+from sqlmodel import Field as SQLModelField
+from sqlmodel import SQLModel
+
+
+class SquareDetection(SQLModel, table=True):
+    id: int | None = SQLModelField(default=None, primary_key=True)
+    session_id: str
+    img_file: str
+    square_size: int
+    lines_qty: int
+    lines_thickness: int
+    detector: str | None = None
+    ransac_iterations: int | None = None
+    elapsed_time: float | None = None
+    success: bool | None = None
 
 
 class ImageData(BaseModel):
@@ -29,4 +44,7 @@ class ImageCreateRequest(BaseModel):
 class ImageFindRequest(BaseModel):
     id: int = Field(alias="_id")
     ransac_iterations: int
+    detector: str
+    ransac_iterations: int
+    detector: str
     detector: str
