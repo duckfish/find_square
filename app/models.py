@@ -9,15 +9,15 @@ class ImageCreateRequest(BaseModel):
     timestamp: datetime
     session_id: str
     square_size: int
-    lines_numb: int
-    line_thickness: int
+    lines_qty: int
+    lines_thickness: int
 
 
 class SquareDetection(SQLModel, table=True):
     id: int | None = SQLModelField(default=None, primary_key=True)
-    timestamp: str
+    timestamp: datetime
     session_id: str
-    img_file: str
+    img_file: str | None = None
     square_size: int
     lines_qty: int
     lines_thickness: int

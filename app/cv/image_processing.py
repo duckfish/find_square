@@ -1,5 +1,7 @@
 import base64
 import random
+from datetime import datetime
+from pathlib import Path
 from time import perf_counter
 from typing import List, Optional, Sequence, Tuple
 
@@ -162,7 +164,7 @@ class ImageGenerator(BaseImageProcessor):
 
     def generate_img(
         self, square_size: int, lines_numb: int, line_thickness: int
-    ) -> np.ndarray:
+    ) -> tuple[np.ndarray, str]:
         """
         Generate a noisy image with random straight lines and a filled square.
 
@@ -191,7 +193,12 @@ class ImageGenerator(BaseImageProcessor):
         )
         img = self._add_salt_and_pepper_noise(img)
 
-        return img
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        img_path = Path(f"data/images/{timestamp}.png")
+        img_path.parent.mkdir(exist_ok=True, parents=True)
+
+        cv2.imwrite(filename=str(img_path), img=img)
+        return img, str(img_path)
 
 
 class SquareDetector(BaseImageProcessor):
@@ -387,4 +394,5 @@ class SquareDetector(BaseImageProcessor):
 
 
 image_generator = ImageGenerator()
+square_detector = SquareDetector()
 square_detector = SquareDetector()

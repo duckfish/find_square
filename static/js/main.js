@@ -48,8 +48,8 @@ generateButton.addEventListener("click", async () => {
         timestamp: timestamp,
         session_id: sessionId,
         square_size: squareSizeInput.value,
-        lines_numb: linesNumberInput.value,
-        line_thickness: lineThicknessInput.value
+        lines_qty: linesNumberInput.value,
+        lines_thickness: lineThicknessInput.value
     }
 
     const response = await fetch('/generate-image', {

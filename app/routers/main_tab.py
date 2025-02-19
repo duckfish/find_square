@@ -1,11 +1,8 @@
 import numpy as np
 from config import config
 from cv.image_processing import ImageGenerator, SquareDetector
-from dependencies import (
-    get_image_generator,  # MongoManager,; get_database,
-    get_session,
-    get_square_detector,
-)
+from dependencies import get_image_generator  # MongoManager,; get_database,
+from dependencies import get_session, get_square_detector
 from fastapi import APIRouter, Depends
 from models import (
     ImageCreateRequest,
@@ -29,11 +26,11 @@ async def generate_image(
     image_generator: ImageGenerator = Depends(get_image_generator),
     session: Session = Depends(get_session),
 ):
-    img = image_generator.generate_img(
-        image_create.square_size, image_create.lines_numb, image_create.line_thickness
+    db_result = SquareDetection.model_validate(image_create)
+    img, img_path = image_generator.generate_img(
+        image_create.square_size, image_create.lines_qty, image_create.lines_thickness
     )
-    print(image_create)
-    db_result = SquareDetection.model_validate(ImageCreateRequest)
+    db_result.img_file = img_path
     session.add(db_result)
     session.commit()
     session.refresh(db_result)
@@ -75,6 +72,15 @@ async def test_image(
         "elapsed_time": elapsed_time,
     }
     image_data_update = ImageDataUpdate(**image_data_update)
+    await db.update_line(image_data_update)
+
+    return {"img": img_base64, "elapsed_time": elapsed_time, "success": success}
+    await db.update_line(image_data_update)
+
+    return {"img": img_base64, "elapsed_time": elapsed_time, "success": success}
+    await db.update_line(image_data_update)
+
+    return {"img": img_base64, "elapsed_time": elapsed_time, "success": success}
     await db.update_line(image_data_update)
 
     return {"img": img_base64, "elapsed_time": elapsed_time, "success": success}
