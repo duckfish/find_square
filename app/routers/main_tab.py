@@ -2,13 +2,18 @@ import numpy as np
 from config import config
 from cv.image_processing import ImageGenerator, SquareDetector
 from dependencies import (
-    MongoManager,
-    get_database,
-    get_image_generator,
+    get_image_generator,  # MongoManager,; get_database,
+    get_session,
     get_square_detector,
 )
 from fastapi import APIRouter, Depends
-from models import ImageCreateRequest, ImageDataUpdate, ImageFindRequest
+from models import (
+    ImageCreateRequest,
+    ImageDataUpdate,
+    ImageFindRequest,
+    SquareDetection,
+)
+from sqlmodel import Session
 
 router = APIRouter(tags=["main"])
 
@@ -22,20 +27,16 @@ router = APIRouter(tags=["main"])
 async def generate_image(
     image_create: ImageCreateRequest,
     image_generator: ImageGenerator = Depends(get_image_generator),
-    db: MongoManager = Depends(get_database),
+    session: Session = Depends(get_session),
 ):
     img = image_generator.generate_img(
         image_create.square_size, image_create.lines_numb, image_create.line_thickness
     )
-    image_data = {
-        "_id": image_create.id,
-        "session_id": image_create.session_id,
-        "image": img.tobytes(),
-        "size": image_create.square_size,
-        "lines": image_create.lines_numb,
-        "thickness": image_create.line_thickness,
-    }
-    await db.add_line(image_data)
+    print(image_create)
+    db_result = SquareDetection.model_validate(ImageCreateRequest)
+    session.add(db_result)
+    session.commit()
+    session.refresh(db_result)
 
     img_base64 = image_generator.get_img_base64(img)
     return {"img": img_base64}
@@ -47,7 +48,7 @@ async def generate_image(
 )
 async def test_image(
     image_find: ImageFindRequest,
-    db: MongoManager = Depends(get_database),
+    session: Session = Depends(get_session),
     square_detector: SquareDetector = Depends(get_square_detector),
 ):
     image_data = await db.get_image(image_find.id)

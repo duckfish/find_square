@@ -45,11 +45,11 @@ generateButton.addEventListener("click", async () => {
     timestamp = new Date().getTime();
 
     const data = {
-            _id: timestamp,
-            session_id: sessionId,
-            square_size: squareSizeInput.value,
-            lines_numb: linesNumberInput.value,
-            line_thickness: lineThicknessInput.value
+        timestamp: timestamp,
+        session_id: sessionId,
+        square_size: squareSizeInput.value,
+        lines_numb: linesNumberInput.value,
+        line_thickness: lineThicknessInput.value
     }
 
     const response = await fetch('/generate-image', {
@@ -72,7 +72,7 @@ const findButton = document.getElementById("find-square-button");
 const fail = htmx.find('#fail');
 
 findButton.addEventListener("click", async () => {
-    
+
     fail.style.display = 'none';
     const squareNetRadio = htmx.find('#SquareNet-radio');
     let detector = 'RANSAC';
@@ -102,7 +102,7 @@ findButton.addEventListener("click", async () => {
         body: JSON.stringify(data),
     });
 
-    clearInterval(loadingInterval); 
+    clearInterval(loadingInterval);
 
     if (response.ok) {
         const responseData = await response.json();
@@ -113,7 +113,7 @@ findButton.addEventListener("click", async () => {
         if (!success) {
             fail.style.display = "block";
         };
-        
+
         htmx.find('#elapsed-time-indicator').textContent = `${responseData.elapsed_time} ms`;
     }
 });

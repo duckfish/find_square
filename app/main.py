@@ -3,7 +3,8 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from config import config
-from dependencies import db
+from db import create_db
+# from dependencies import db
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -29,12 +30,12 @@ templates = Jinja2Templates(directory="templates")
 
 
 async def startup():
-    await db.connect_to_database(config.DB_URL)
+    create_db()
     logger.info("Application startup complete.")
 
 
 async def shutdown():
-    await db.close_database_connection()
+    # await db.close_database_connection()
     logger.info("Application shutdown complete.")
 
 
