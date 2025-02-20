@@ -165,3 +165,6 @@ gif/temp
 *.keras
 *.h5
 *prod*
+*.db
+data/
+*helpers*

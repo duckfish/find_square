@@ -1,7 +1,6 @@
 import logging
 from contextlib import asynccontextmanager
 
-import uvicorn
 from config import config
 from db import create_db
 
@@ -49,14 +48,3 @@ async def index(request: Request):
     }
 
     return templates.TemplateResponse("index.html", context)
-
-
-if __name__ == "__main__":
-    uvicorn.run(
-        "main:app",
-        host=config.UVICORN_SERVER_HOST,
-        port=config.UVICORN_SERVER_PORT,
-        log_config=config.LOG_CONFIG,
-        reload=config.UVICORN_SERVER_RELOAD,
-        access_log=False,
-    )
