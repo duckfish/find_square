@@ -1,9 +1,10 @@
+from uuid import uuid4
+
 import numpy as np
 from config import config
 from cv.image_processing import ImageGenerator, SquareDetector
-from dependencies import get_image_generator  # MongoManager,; get_database,
-from dependencies import get_session, get_square_detector
-from fastapi import APIRouter, Depends
+from dependencies import get_image_generator, get_session, get_square_detector
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from models import (
     ImageCreateRequest,
     ImageDataUpdate,
@@ -22,18 +23,34 @@ router = APIRouter(tags=["main"])
     line thickness",
 )
 async def generate_image(
+    request: Request,
+    response: Response,
     image_create: ImageCreateRequest,
     image_generator: ImageGenerator = Depends(get_image_generator),
     session: Session = Depends(get_session),
 ):
+    user_session = request.cookies.get("user_session")
+    if not user_session:
+        user_session = str(uuid4())
+        response.set_cookie(key="user_session", value=user_session, httponly=True)
+
+    request_id = str(uuid4())
+    response.set_cookie(key="request_id", value=request_id, httponly=True)
+
     db_result = SquareDetection.model_validate(image_create)
+
+    db_result.user_session = user_session
+    db_result.request_id = request_id
+
     img, img_path = image_generator.generate_img(
         image_create.square_size, image_create.lines_qty, image_create.lines_thickness
     )
-    db_result.img_file = img_path
-    session.add(db_result)
-    session.commit()
-    session.refresh(db_result)
+    db_result.img_path = img_path
+
+    with session:
+        session.add(db_result)
+        session.commit()
+        session.refresh(db_result)
 
     img_base64 = image_generator.get_img_base64(img)
     return {"img": img_base64}
@@ -44,10 +61,17 @@ async def generate_image(
     summary="Find square",
 )
 async def test_image(
+    request: Request,
     image_find: ImageFindRequest,
     session: Session = Depends(get_session),
     square_detector: SquareDetector = Depends(get_square_detector),
 ):
+    request_id = request.cookies.get("request_id")
+    if not request_id:
+        raise HTTPException(status_code=404, detail="No image found for this session")
+
+    print(request_id)
+
     image_data = await db.get_image(image_find.id)
     image = np.frombuffer(image_data.image, dtype=np.uint8).reshape(
         (config.IMG_SIZE, config.IMG_SIZE)

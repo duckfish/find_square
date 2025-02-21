@@ -14,10 +14,12 @@ class ImageCreateRequest(BaseModel):
 
 
 class SquareDetection(SQLModel, table=True):
-    id: int | None = SQLModelField(default=None, primary_key=True)
+    request_id: str | None = SQLModelField(default=None, primary_key=True)
+    user_session: str | None = None
+    # request_id: str | None = None
     timestamp: datetime
-    session_id: str
-    img_file: str | None = None
+
+    img_path: str | None = None
     square_size: int
     lines_qty: int
     lines_thickness: int
