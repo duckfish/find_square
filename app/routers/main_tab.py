@@ -1,17 +1,12 @@
 from uuid import uuid4
 
-import numpy as np
+import cv2
 from config import config
 from cv.image_processing import ImageGenerator, SquareDetector
 from dependencies import get_image_generator, get_session, get_square_detector
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from models import (
-    ImageCreateRequest,
-    ImageDataUpdate,
-    ImageFindRequest,
-    SquareDetection,
-)
-from sqlmodel import Session
+from models import ImageCreateRequest, ImageFindRequest, SquareDetection
+from sqlmodel import Session, select
 
 router = APIRouter(tags=["main"])
 
@@ -72,10 +67,15 @@ async def test_image(
 
     print(request_id)
 
-    image_data = await db.get_image(image_find.id)
-    image = np.frombuffer(image_data.image, dtype=np.uint8).reshape(
-        (config.IMG_SIZE, config.IMG_SIZE)
-    )
+    with session:
+        statement = select(SquareDetection).where(
+            SquareDetection.request_id == request_id
+        )
+        square_detection = session.exec(statement).one()
+        img_path = square_detection.img_path
+
+    image = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)  # type: ignore
+    image = cv2.resize(image, (config.IMG_SIZE, config.IMG_SIZE))  # type: ignore
 
     detector = image_find.detector
     image_result, elapsed_time = square_detector.find_square(
@@ -88,23 +88,14 @@ async def test_image(
         img_base64 = square_detector.get_img_base64(image)
         success = False
 
-    image_data_update = {
-        "_id": image_find.id,
-        "ransac_iterations": image_find.ransac_iterations,
-        "detector": image_find.detector,
-        "success": success,
-        "elapsed_time": elapsed_time,
-    }
-    image_data_update = ImageDataUpdate(**image_data_update)
-    await db.update_line(image_data_update)
+    square_detection.ransac_iterations = image_find.ransac_iterations
+    square_detection.detector = image_find.detector
+    square_detection.success = success
+    square_detection.elapsed_time = elapsed_time
 
-    return {"img": img_base64, "elapsed_time": elapsed_time, "success": success}
-    await db.update_line(image_data_update)
-
-    return {"img": img_base64, "elapsed_time": elapsed_time, "success": success}
-    await db.update_line(image_data_update)
-
-    return {"img": img_base64, "elapsed_time": elapsed_time, "success": success}
-    await db.update_line(image_data_update)
+    with session:
+        session.add(square_detection)
+        session.commit()
+        session.refresh(square_detection)
 
     return {"img": img_base64, "elapsed_time": elapsed_time, "success": success}
