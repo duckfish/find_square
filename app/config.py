@@ -5,8 +5,13 @@ class Config(BaseSettings):
     UVICORN_SERVER_HOST: str
     UVICORN_SERVER_PORT: int
     UVICORN_SERVER_RELOAD: bool
-    DB_URL: str
+
+    DB_HOST: str
+    DB_PORT: int
+    DB_USER: str
+    DB_PASSWORD: str
     DB_NAME: str
+
     LOG_CONFIG: str = "app/log_config.yaml"
     IMG_SIZE: int
     MODEL_PATH: str
@@ -15,4 +20,4 @@ class Config(BaseSettings):
         env_file = "find_square.env"
 
 
-config = Config()
+config = Config()  # type: ignore

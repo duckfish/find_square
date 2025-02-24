@@ -1,10 +1,12 @@
 import models
+from config import config
 from sqlmodel import SQLModel, create_engine
 
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+db_url = f"postgresql://{config.DB_USER}:\
+{config.DB_PASSWORD}@{config.DB_HOST}:\
+{config.DB_PORT}/{config.DB_NAME}"
 
-engine = create_engine(sqlite_url)
+engine = create_engine(db_url)
 
 
 def create_db():

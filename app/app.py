@@ -3,8 +3,6 @@ from contextlib import asynccontextmanager
 
 from config import config
 from db import create_db
-
-# from dependencies import db
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
