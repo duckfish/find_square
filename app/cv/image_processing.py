@@ -1,9 +1,9 @@
 import base64
 import random
+from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
 from time import perf_counter
-from typing import List, Optional, Sequence, Tuple
 
 import cv2
 import keras.backend
@@ -50,8 +50,7 @@ def iou_metric(y_true, y_pred):
 
 class BaseImageProcessor:
     def get_img_base64(self, img: np.ndarray) -> str:
-        """
-        Convert the input image array into a base64 encoded JPEG image string.
+        """Convert the input image array into a base64 encoded JPEG image string.
 
         Args:
             img (np.ndarray): Input image array.
@@ -66,8 +65,7 @@ class BaseImageProcessor:
 
 
 class ImageGenerator(BaseImageProcessor):
-    """
-    A class responsible for generating noisy images with random straight
+    """A class responsible for generating noisy images with random straight
     lines and filled squares.
 
     Attributes:
@@ -79,7 +77,6 @@ class ImageGenerator(BaseImageProcessor):
             self, square_size: int, lines_numb: int, line_thickness: int
         ) -> np.ndarray:
             Generates a noisy image with random straight lines and a filled square.
-
     """
 
     ELEMENTS_COLOR = (0, 0, 0)
@@ -88,9 +85,8 @@ class ImageGenerator(BaseImageProcessor):
         self.img_width = config.IMG_SIZE
         self.img_height = config.IMG_SIZE
 
-    def _generate_random_lines(self, lines_numb: int) -> List[Tuple[Tuple[int, int]]]:
-        """
-        Generate random lines with specified parameters within the image boundaries.
+    def _generate_random_lines(self, lines_numb: int) -> list[tuple[tuple[int, int]]]:
+        """Generate random lines with specified parameters within the image boundaries.
 
         Args:
             lines_numb (int): The number of random lines to generate.
@@ -115,9 +111,8 @@ class ImageGenerator(BaseImageProcessor):
             lines.append(((x1, y1), (x2, y2)))
         return lines
 
-    def _generate_square_points(self, square_size: int) -> Tuple[Tuple[int, int]]:
-        """
-        Generate random coordinates for a square within the image canvas.
+    def _generate_square_points(self, square_size: int) -> tuple[tuple[int, int]]:
+        """Generate random coordinates for a square within the image canvas.
 
         Args:
             square_size (int): The size of the square's sides.
@@ -137,8 +132,7 @@ class ImageGenerator(BaseImageProcessor):
     def _add_salt_and_pepper_noise(
         self, img: np.ndarray, salt_prob: float = 0.1, pepper_prob: float = 0.06
     ) -> np.ndarray:
-        """
-        Add salt and pepper noise to an img.
+        """Add salt and pepper noise to an img.
 
         Args:
             img (np.ndarray): The input img.
@@ -165,8 +159,7 @@ class ImageGenerator(BaseImageProcessor):
     def generate_img(
         self, square_size: int, lines_numb: int, line_thickness: int
     ) -> tuple[np.ndarray, str]:
-        """
-        Generate a noisy image with random straight lines and a filled square.
+        """Generate a noisy image with random straight lines and a filled square.
 
         Args:
             square_size (int): The size of the square to be drawn.
@@ -202,8 +195,7 @@ class ImageGenerator(BaseImageProcessor):
 
 
 class SquareDetector(BaseImageProcessor):
-    """
-    A class for detecting and marking a square in an image.
+    """A class for detecting and marking a square in an image.
 
     Methods:
         find_square(img: np.ndarray) -> np.ndarray:
@@ -222,8 +214,7 @@ class SquareDetector(BaseImageProcessor):
     def _remove_noise(
         self, img: np.ndarray, median_kernel_size: int = 3, morph_kernel_size: int = 5
     ) -> np.ndarray:
-        """
-        Remove salt and pepper noise from an image using median filtering
+        """Remove salt and pepper noise from an image using median filtering
         and additional erosion and dilation operations.
 
         Args:
@@ -245,9 +236,8 @@ class SquareDetector(BaseImageProcessor):
 
         return dilated_image
 
-    def _get_lines_intersections(self, img: np.ndarray) -> List[Tuple[int, int]]:
-        """
-        Find intersections of lines detected in the input image
+    def _get_lines_intersections(self, img: np.ndarray) -> list[tuple[int, int]]:
+        """Find intersections of lines detected in the input image
         using the Hough Line Transform.
 
         Args:
@@ -269,9 +259,8 @@ class SquareDetector(BaseImageProcessor):
 
     def _get_square_vertices(
         self, img: np.ndarray, ransac_iterations: int
-    ) -> List[Tuple[int, int]]:
-        """
-        Get the vertices of the square region of interest (ROI) in the image.
+    ) -> list[tuple[int, int]]:
+        """Get the vertices of the square region of interest (ROI) in the image.
 
         Args:
             img (np.ndarray): The input grayscale image.
@@ -292,8 +281,7 @@ class SquareDetector(BaseImageProcessor):
         return square_vertices
 
     def _preprocess_img_m(self, img: np.ndarray) -> np.ndarray:
-        """
-        Preprocess the input image for the SquareNet model.
+        """Preprocess the input image for the SquareNet model.
 
         Args:
             img (np.ndarray): Input image as a NumPy array.
@@ -310,9 +298,8 @@ class SquareDetector(BaseImageProcessor):
         img = np.array(img, dtype="float32") / 255.0
         return img
 
-    def _process_verticies_m(self, verticies: np.ndarray) -> List[int]:
-        """
-        Convert normalized coordinates to original values.
+    def _process_verticies_m(self, verticies: np.ndarray) -> list[int]:
+        """Convert normalized coordinates to original values.
 
         Args:
             vertices (np.ndarray): Normalized coordinates of the detected vertices
@@ -327,10 +314,9 @@ class SquareDetector(BaseImageProcessor):
         return verticies
 
     def _draw_result(
-        self, img: np.ndarray, verticies: Sequence[Tuple[int, int]], detector: str
+        self, img: np.ndarray, verticies: Sequence[tuple[int, int]], detector: str
     ) -> np.ndarray:
-        """
-        Draw the result on the input image by marking the detected vertices
+        """Draw the result on the input image by marking the detected vertices
         with circles.
 
         Args:
@@ -356,9 +342,8 @@ class SquareDetector(BaseImageProcessor):
 
     def find_square(
         self, img: np.ndarray, ransac_iterations: int, detector: str
-    ) -> Tuple[Optional[np.ndarray], int]:
-        """
-        Find a square in the input image and return a new image with
+    ) -> tuple[np.ndarray | None, int]:
+        """Find a square in the input image and return a new image with
         the square outlined.
 
         Args:
@@ -394,5 +379,4 @@ class SquareDetector(BaseImageProcessor):
 
 
 image_generator = ImageGenerator()
-square_detector = SquareDetector()
 square_detector = SquareDetector()

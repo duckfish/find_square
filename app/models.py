@@ -1,24 +1,23 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
-from sqlmodel import Field as SQLModelField
-from sqlmodel import SQLModel
+from sqlmodel import Field, SQLModel
 
 
-class ImageCreateRequest(BaseModel):
-    timestamp: datetime
-    session_id: str
+class ImageCreateRequest(SQLModel):
     square_size: int
     lines_qty: int
     lines_thickness: int
 
 
-class SquareDetection(SQLModel, table=True):
-    request_id: str | None = SQLModelField(default=None, primary_key=True)
-    user_session: str | None = None
-    # request_id: str | None = None
-    timestamp: datetime
+class ImageFindRequest(SQLModel):
+    ransac_iterations: int
+    detector: str
 
+
+class SquareDetection(SQLModel, table=True):
+    request_id: str | None = Field(default=None, primary_key=True)
+    user_session: str | None = None
+    timestamp: datetime = Field(default_factory=datetime.now)
     img_path: str | None = None
     square_size: int
     lines_qty: int
@@ -27,26 +26,3 @@ class SquareDetection(SQLModel, table=True):
     ransac_iterations: int | None = None
     elapsed_time: float | None = None
     success: bool | None = None
-
-
-class ImageData(BaseModel):
-    id: int = Field(alias="_id")
-    session_id: str
-    image: bytes
-    size: int
-    lines: int
-    thickness: int
-
-
-class ImageDataUpdate(BaseModel):
-    id: int = Field(alias="_id")
-    ransac_iterations: int
-    detector: str
-    success: bool
-    elapsed_time: int
-
-
-class ImageFindRequest(BaseModel):
-    id: int = Field(alias="_id")
-    ransac_iterations: int
-    detector: str

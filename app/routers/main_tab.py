@@ -65,8 +65,6 @@ async def test_image(
     if not request_id:
         raise HTTPException(status_code=404, detail="No image found for this session")
 
-    print(request_id)
-
     with session:
         statement = select(SquareDetection).where(
             SquareDetection.request_id == request_id
