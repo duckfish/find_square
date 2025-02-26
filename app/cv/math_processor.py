@@ -121,9 +121,7 @@ class MathProcessor:
     def find_intersections(
         self, lines: np.ndarray, width: int, height: int
     ) -> List[Tuple[int, int]]:
-        """
-        Find intersections between line segments and filter points within the image
-        canvas.
+        """Find intersections between lines and filter points within the image canvas.
 
         Args:
             lines (np.ndarray): An array of line segments represented as numpy arrays,

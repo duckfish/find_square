@@ -11,10 +11,11 @@ import keras.models
 import numpy as np
 from config import config
 from cv.math_processor import MathProcessor
+from models import Line, Point
 
 
 @keras.saving.register_keras_serializable()
-def iou_metric(y_true, y_pred):
+def iou_metric(y_true, y_pred):  # noqa: D103
     # Extract coordinates from tensors
     x1, y1, x2, y2 = y_true[:, 0], y_true[:, 1], y_true[:, 2], y_true[:, 3]
     x1_pred, y1_pred, x2_pred, y2_pred = (
@@ -59,14 +60,13 @@ class BaseImageProcessor:
             str: Base64 encoded image string with the appropriate data URI prefix.
         """
         _, img_encoded = cv2.imencode(".jpeg", img)
-        img_base64 = base64.b64encode(img_encoded)
+        img_base64 = base64.b64encode(img_encoded)  # type: ignore
         img_base64 = "data:img/jpeg;base64," + img_base64.decode("utf-8")
         return img_base64
 
 
 class ImageGenerator(BaseImageProcessor):
-    """A class responsible for generating noisy images with random straight
-    lines and filled squares.
+    """Generating noisy images with random straight lines and filled square.
 
     Attributes:
         img_height (int): The height of the generated image.
@@ -85,7 +85,7 @@ class ImageGenerator(BaseImageProcessor):
         self.img_width = config.IMG_SIZE
         self.img_height = config.IMG_SIZE
 
-    def _generate_random_lines(self, lines_numb: int) -> list[tuple[tuple[int, int]]]:
+    def _generate_random_lines(self, lines_numb: int) -> list[Line]:
         """Generate random lines with specified parameters within the image boundaries.
 
         Args:
@@ -108,26 +108,25 @@ class ImageGenerator(BaseImageProcessor):
             x2 = self.img_width + 100
             y2 = int(k * x2 + b)
 
-            lines.append(((x1, y1), (x2, y2)))
+            lines.append(Line(x1, y1, x2, y2))
         return lines
 
-    def _generate_square_points(self, square_size: int) -> tuple[tuple[int, int]]:
+    def _generate_square_points(self, square_size: int) -> tuple[Point, Point]:
         """Generate random coordinates for a square within the image canvas.
 
         Args:
             square_size (int): The size of the square's sides.
 
         Returns:
-            Tuple[Tuple[int, int]]: A tuple containing two tuples, each containing
-            (x, y) coordinates representing the top-left and bottom-right corners
-            of the randomly positioned square.
+            Tuple[Tuple[int, int]]: A tuple containing two points representing
+            the top-left and bottom-right corners of the randomly positioned square.
         """
         shift = int(square_size * 1.2)  # A square to be within image canvas
         x_square = random.randint(0, self.img_width - shift)
         y_square = random.randint(0, self.img_height - shift)
-        point1 = (x_square, y_square)
-        point2 = (x_square + square_size, y_square + square_size)
-        return point1, point2
+        top_left = Point(x_square, y_square)
+        bottom_right = Point(x_square + square_size, y_square + square_size)
+        return top_left, bottom_right
 
     def _add_salt_and_pepper_noise(
         self, img: np.ndarray, salt_prob: float = 0.1, pepper_prob: float = 0.06
@@ -174,7 +173,13 @@ class ImageGenerator(BaseImageProcessor):
 
         lines = self._generate_random_lines(lines_numb)
         for line in lines:
-            cv2.line(img, line[0], line[1], self.ELEMENTS_COLOR, line_thickness)
+            cv2.line(
+                img,
+                (line.x1, line.y1),
+                (line.x2, line.y2),
+                self.ELEMENTS_COLOR,
+                line_thickness,
+            )
 
         square_points = self._generate_square_points(square_size)
         cv2.rectangle(
@@ -184,6 +189,7 @@ class ImageGenerator(BaseImageProcessor):
             self.ELEMENTS_COLOR,
             -1,
         )
+
         img = self._add_salt_and_pepper_noise(img)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
@@ -214,8 +220,7 @@ class SquareDetector(BaseImageProcessor):
     def _remove_noise(
         self, img: np.ndarray, median_kernel_size: int = 3, morph_kernel_size: int = 5
     ) -> np.ndarray:
-        """Remove salt and pepper noise from an image using median filtering
-        and additional erosion and dilation operations.
+        """Remove salt and pepper noise from an image.
 
         Args:
             img (np.ndarray): The noisy input image.
@@ -227,18 +232,17 @@ class SquareDetector(BaseImageProcessor):
         Returns:
             np.ndarray: The cleaned image.
         """
-        cleaned_image = cv2.medianBlur(img, median_kernel_size)
-        cleaned_image = cv2.medianBlur(cleaned_image, median_kernel_size)
+        img_blurred = cv2.medianBlur(img, median_kernel_size)
+        img_blurred = cv2.medianBlur(img_blurred, median_kernel_size)
 
         kernel = np.ones((morph_kernel_size, morph_kernel_size), np.uint8)
-        eroded_image = cv2.erode(cleaned_image, kernel, iterations=1)
-        dilated_image = cv2.dilate(eroded_image, kernel, iterations=1)
+        img_eroded = cv2.erode(img_blurred, kernel, iterations=1)
+        img_dilated = cv2.dilate(img_eroded, kernel, iterations=1)
 
-        return dilated_image
+        return img_dilated
 
     def _get_lines_intersections(self, img: np.ndarray) -> list[tuple[int, int]]:
-        """Find intersections of lines detected in the input image
-        using the Hough Line Transform.
+        """Find intersections of lines detected in the input image.
 
         Args:
             img (np.ndarray): Input image as a NumPy array.
@@ -298,7 +302,7 @@ class SquareDetector(BaseImageProcessor):
         img = np.array(img, dtype="float32") / 255.0
         return img
 
-    def _process_verticies_m(self, verticies: np.ndarray) -> list[int]:
+    def _process_vertices_m(self, vertices: np.ndarray) -> list[int]:
         """Convert normalized coordinates to original values.
 
         Args:
@@ -310,18 +314,17 @@ class SquareDetector(BaseImageProcessor):
                 The coordinates are transformed from normalized values back to their
                 original scale based on the provided IMG_SIZE configuration.
         """
-        verticies = map(int, verticies[0] * config.IMG_SIZE)
-        return verticies
+        vertices = map(int, vertices[0] * config.IMG_SIZE)
+        return vertices
 
     def _draw_result(
-        self, img: np.ndarray, verticies: Sequence[tuple[int, int]], detector: str
+        self, img: np.ndarray, vertices: Sequence[tuple[int, int]], detector: str
     ) -> np.ndarray:
-        """Draw the result on the input image by marking the detected vertices
-        with circles.
+        """Draw the result on the input image by marking the detected vertices.
 
         Args:
             img (np.ndarray): Input image as a NumPy array.
-            verticies (Sequence[Tuple[int, int]]): A sequence of (x, y) coordinates
+            vertices (Sequence[Tuple[int, int]]): A sequence of (x, y) coordinates
             of vertices.
             detector (str): The detector used to identify the shape.
                 Options: "RANSAC" for RANSAC-based detection or "SquareNet" for a neural
@@ -332,11 +335,11 @@ class SquareDetector(BaseImageProcessor):
         """
         img_res = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         if detector == "RANSAC":
-            verticies = np.array(verticies, np.int32)
-            verticies = verticies.reshape((-1, 1, 2))
-            cv2.polylines(img_res, [verticies], True, self.COLOR_RESULT, 2)
+            vertices = np.array(vertices, np.int32)
+            vertices = vertices.reshape((-1, 1, 2))
+            cv2.polylines(img_res, [vertices], True, self.COLOR_RESULT, 2)
         elif detector == "SquareNet":
-            x1, y1, x2, y2 = verticies
+            x1, y1, x2, y2 = vertices
             cv2.rectangle(img_res, (x1, y1), (x2, y2), self.COLOR_RESULT, 2)
         return img_res
 
@@ -367,7 +370,7 @@ class SquareDetector(BaseImageProcessor):
             img_cleaned = self._remove_noise(img)
             img_preprocessed = self._preprocess_img_m(img_cleaned)
             verticies = self.model.predict(img_preprocessed)
-            verticies = self._process_verticies_m(verticies)
+            verticies = self._process_vertices_m(verticies)
         t_stop = perf_counter()
         elapsed_time = int((t_stop - t_start) * 1000)  # ms
 
