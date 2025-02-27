@@ -7,9 +7,7 @@ import numpy as np
 
 
 class MathProcessor:
-    """
-    A utility class that provides various mathematical operations for image
-    processing tasks.
+    """A utility class that provides various mathematical operations for image processing tasks.
 
     Methods:
         get_vertices_ransac(
@@ -29,9 +27,7 @@ class MathProcessor:
     def _get_random_quad(
         self, intersections: List[Tuple[int, int]]
     ) -> Optional[List[Tuple[int, int]]]:
-        """
-        Generate a random quadrilateral (quad) by selecting one point from each set
-        of points.
+        """Generate a random quadrilateral (quad) by selecting one point from each set of points.
 
         Args:
             intersections (List[Tuple[int, int]]): A list of intersections.
@@ -50,8 +46,7 @@ class MathProcessor:
     def _perpendicular_lines(
         self, line1: Sequence[float], line2: Sequence[float], tolerance: float = 0.5
     ) -> bool:
-        """
-        Check if two line segments are approximately perpendicular.
+        """Check if two line segments are approximately perpendicular.
 
         Args:
             line1 (Sequence[float]): A sequence of four float values representing
@@ -74,16 +69,12 @@ class MathProcessor:
 
         angle_diff = np.abs(angle1 - angle2)
 
-        if np.abs(90 - np.degrees(angle_diff)) < tolerance:
-            return True
-        else:
-            return False
+        return np.abs(90 - np.degrees(angle_diff)) < tolerance
 
     def _calculate_intersection(
         self, line1: Sequence[float], line2: Sequence[float]
     ) -> Optional[Tuple[int, int]]:
-        """
-        Calculate the intersection point of two line segments.
+        """Calculate the intersection point of two line segments.
 
         Args:
             line1 (Sequence[float]): A sequence of four float values representing
@@ -151,8 +142,7 @@ class MathProcessor:
     def _calculate_distance(
         self, point1: Sequence[float], point2: Sequence[float]
     ) -> float:
-        """
-        Calculate the Euclidean distance between two points.
+        """Calculate the Euclidean distance between two points.
 
         Args:
             point1 (Sequence[float]): A sequence of two float values representing
@@ -169,8 +159,7 @@ class MathProcessor:
         return distance
 
     def _equal_sides(self, sides: List[float], tolerance: float = 0.005) -> bool:
-        """
-        Check whether all sides are approximately equal within a certain tolerance.
+        """Check whether all sides are approximately equal within a certain tolerance.
 
         Args:
             sides (List[float]): A list of side lengths.
@@ -187,8 +176,7 @@ class MathProcessor:
         )
 
     def _is_square(self, quad: List[Tuple[int, int]]) -> Tuple[bool, float]:
-        """
-        Check if the given quadrilateral is a square and calculate the maximum error.
+        """Check if the given quadrilateral is a square and calculate the maximum error.
 
         Args:
             quad (List[Tuple[int, int]]): A list of four tuples, each containing (x, y)
@@ -217,9 +205,7 @@ class MathProcessor:
         return self._equal_sides(distances), error_max
 
     def _sort_quad(self, quad: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
-        """
-        Sort the vertices of a quadrilateral in a clockwise (CW) order based on
-        their angles to the centroid.
+        """Sort the vertices of a quadrilateral in a clockwise (CW) order.
 
         Args:
             quad (List[Tuple[int, int]]): A list of four tuples, each containing (x, y)
@@ -236,8 +222,7 @@ class MathProcessor:
         return quad_sorted
 
     def _mask_image(self, img: np.ndarray, quad: List[Tuple[int, int]]) -> np.ndarray:
-        """
-        Apply a mask to an image, masking out a specified quadrilateral region.
+        """Apply a mask to an image, masking out a specified quadrilateral region.
 
         Args:
             img (np.ndarray): Input image as a NumPy array.
@@ -256,9 +241,7 @@ class MathProcessor:
     def _count_black_pixels(
         self, quad: List[Tuple[int, int]], img: np.ndarray
     ) -> Tuple[bool, int]:
-        """
-        Count the number of black pixels (pixel values equal to 0) within
-        a quadrilateral region of an image.
+        """Count the number of black pixels within a quadrilateral region of an image.
 
         Args:
             quad (List[Tuple[int, int]]): A list of four tuples, each containing
@@ -290,8 +273,7 @@ class MathProcessor:
         intersections: List[Tuple[int, int]],
         ransac_iterations: int = 1000,
     ) -> Optional[List[Tuple[int, int]]]:
-        """
-        Use the RANSAC algorithm to estimate the vertices of a square in the image.
+        """Use the RANSAC algorithm to estimate the vertices of a square in the image.
 
         Args:
             img (np.ndarray): Input image as a NumPy array.
