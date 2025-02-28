@@ -1,9 +1,11 @@
 import math
 import random
-from typing import List, Optional, Sequence, Tuple
+from collections.abc import Sequence
+from typing import Optional
 
 import cv2
 import numpy as np
+from models import Line, Point
 
 
 class MathProcessor:
@@ -12,28 +14,28 @@ class MathProcessor:
     Methods:
         get_vertices_ransac(
         img: np.ndarray,
-        intersections: List[Tuple[int, int]],
+        intersections: list[tuple[int, int]],
         ransac_iterations: int = 1000,
-        ) -> Optional[List[Tuple[int, int]]]:
+        ) -> Optional[list[tuple[int, int]]]:
             Uses the RANSAC algorithm to estimate the vertices of a square in the image.
 
         find_intersections(
         lines: np.ndarray, width: int, height: int
-        ) -> List[Tuple[int, int]]:
+        ) -> list[tuple[int, int]]:
             Finds intersections between line segments and filter points within the image
             canvas.
     """
 
     def _get_random_quad(
-        self, intersections: List[Tuple[int, int]]
-    ) -> Optional[List[Tuple[int, int]]]:
+        self, intersections: list[tuple[int, int]]
+    ) -> Optional[list[tuple[int, int]]]:
         """Generate a random quadrilateral (quad) by selecting one point from each set of points.
 
         Args:
-            intersections (List[Tuple[int, int]]): A list of intersections.
+            intersections (list[tuple[int, int]]): A list of intersections.
 
         Returns:
-            Optional[List[Tuple[int, int]]]: A list of four tuples, each containing
+            Optional[list[tuple[int, int]]]: A list of four tuples, each containing
             (x, y) coordinates of a randomly selected point from each quadrant,
             or None if intersections is not large enough for random sampling.
         """
@@ -44,7 +46,7 @@ class MathProcessor:
         return quad
 
     def _perpendicular_lines(
-        self, line1: Sequence[float], line2: Sequence[float], tolerance: float = 0.5
+        self, line1: Line, line2: Line, tolerance: float = 0.5
     ) -> bool:
         """Check if two line segments are approximately perpendicular.
 
@@ -61,11 +63,8 @@ class MathProcessor:
         Returns:
             bool: True if the lines are approximately perpendicular, False otherwise.
         """
-        x1, y1, x2, y2 = line1
-        x3, y3, x4, y4 = line2
-
-        angle1 = np.arctan2(y2 - y1, x2 - x1)
-        angle2 = np.arctan2(y4 - y3, x4 - x3)
+        angle1 = np.arctan2(line1.y2 - line1.y1, line1.x2 - line1.x1)
+        angle2 = np.arctan2(line2.y2 - line2.y1, line2.x2 - line2.x1)
 
         angle_diff = np.abs(angle1 - angle2)
 
@@ -73,7 +72,7 @@ class MathProcessor:
 
     def _calculate_intersection(
         self, line1: Sequence[float], line2: Sequence[float]
-    ) -> Optional[Tuple[int, int]]:
+    ) -> Optional[tuple[int, int]]:
         """Calculate the intersection point of two line segments.
 
         Args:
@@ -85,7 +84,7 @@ class MathProcessor:
                 the format (x3, y3, x4, y4).
 
         Returns:
-            Optional[Tuple[int, int]]: A tuple containing the (x, y) coordinates of
+            Optional[tuple[int, int]]: A tuple containing the (x, y) coordinates of
                 the intersection point if the line segments intersect, or None if
                 they are parallel or coincident.
         """
@@ -111,7 +110,7 @@ class MathProcessor:
 
     def find_intersections(
         self, lines: np.ndarray, width: int, height: int
-    ) -> List[Tuple[int, int]]:
+    ) -> list[Point]:
         """Find intersections between lines and filter points within the image canvas.
 
         Args:
@@ -122,7 +121,7 @@ class MathProcessor:
             height (int): The height of the image canvas.
 
         Returns:
-            List[Tuple[int, int]]: A list of (x, y) coordinates representing
+            list[tuple[int, int]]: A list of (x, y) coordinates representing
                 the intersection points between line segments, filtered to include
                 only points within the image canvas boundaries.
         """
@@ -158,11 +157,11 @@ class MathProcessor:
         distance = math.hypot(x2 - x1, y2 - y1)
         return distance
 
-    def _equal_sides(self, sides: List[float], tolerance: float = 0.005) -> bool:
+    def _equal_sides(self, sides: list[float], tolerance: float = 0.005) -> bool:
         """Check whether all sides are approximately equal within a certain tolerance.
 
         Args:
-            sides (List[float]): A list of side lengths.
+            sides (list[float]): A list of side lengths.
             tolerance (float): Tolerance value for checking the equality of sides.
             Defaults to 0.005.
 
@@ -175,15 +174,15 @@ class MathProcessor:
             math.isclose(reference_distance, dist, rel_tol=tolerance) for dist in sides
         )
 
-    def _is_square(self, quad: List[Tuple[int, int]]) -> Tuple[bool, float]:
+    def _is_square(self, quad: list[tuple[int, int]]) -> tuple[bool, float]:
         """Check if the given quadrilateral is a square and calculate the maximum error.
 
         Args:
-            quad (List[Tuple[int, int]]): A list of four tuples, each containing (x, y)
+            quad (list[tuple[int, int]]): A list of four tuples, each containing (x, y)
                 coordinates representing the vertices of the quadrilateral.
 
         Returns:
-            Tuple[bool, float]: A tuple containing:
+            tuple[bool, float]: A tuple containing:
                 - A boolean indicating whether the quadrilateral is a square.
                 - The maximum error in the distances between vertices.
         """
@@ -204,15 +203,15 @@ class MathProcessor:
 
         return self._equal_sides(distances), error_max
 
-    def _sort_quad(self, quad: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
+    def _sort_quad(self, quad: list[tuple[int, int]]) -> list[tuple[int, int]]:
         """Sort the vertices of a quadrilateral in a clockwise (CW) order.
 
         Args:
-            quad (List[Tuple[int, int]]): A list of four tuples, each containing (x, y)
+            quad (list[tuple[int, int]]): A list of four tuples, each containing (x, y)
                 coordinates representing the vertices of the quadrilateral.
 
         Returns:
-            List[Tuple[int, int]]: The sorted vertices of the quadrilateral
+            list[tuple[int, int]]: The sorted vertices of the quadrilateral
                 in clockwise order.
         """
         centroid = np.mean(quad, axis=0)
@@ -221,12 +220,12 @@ class MathProcessor:
         )
         return quad_sorted
 
-    def _mask_image(self, img: np.ndarray, quad: List[Tuple[int, int]]) -> np.ndarray:
+    def _mask_image(self, img: np.ndarray, quad: list[tuple[int, int]]) -> np.ndarray:
         """Apply a mask to an image, masking out a specified quadrilateral region.
 
         Args:
             img (np.ndarray): Input image as a NumPy array.
-            quad (List[Tuple[int, int]]): A list of four tuples, each containing (x, y)
+            quad (list[tuple[int, int]]): A list of four tuples, each containing (x, y)
                 coordinates representing the vertices of the quadrilateral.
 
         Returns:
@@ -239,17 +238,17 @@ class MathProcessor:
         return img_masked
 
     def _count_black_pixels(
-        self, quad: List[Tuple[int, int]], img: np.ndarray
-    ) -> Tuple[bool, int]:
+        self, quad: list[tuple[int, int]], img: np.ndarray
+    ) -> tuple[bool, int]:
         """Count the number of black pixels within a quadrilateral region of an image.
 
         Args:
-            quad (List[Tuple[int, int]]): A list of four tuples, each containing
+            quad (list[tuple[int, int]]): A list of four tuples, each containing
                 (x, y) coordinates representing the vertices of the quadrilateral.
             img (np.ndarray): Input image as a NumPy array.
 
         Returns:
-            Tuple[bool, int]: A tuple with a boolean value indicating whether
+            tuple[bool, int]: A tuple with a boolean value indicating whether
                 the square is fake, and the count of black pixels within the specified
                 quadrilateral region of the image.
         """
@@ -270,19 +269,19 @@ class MathProcessor:
     def get_vertices_ransac(
         self,
         img: np.ndarray,
-        intersections: List[Tuple[int, int]],
+        intersections: list[tuple[int, int]],
         ransac_iterations: int = 1000,
-    ) -> Optional[List[Tuple[int, int]]]:
+    ) -> Optional[list[tuple[int, int]]]:
         """Use the RANSAC algorithm to estimate the vertices of a square in the image.
 
         Args:
             img (np.ndarray): Input image as a NumPy array.
-            intersections (List[Tuple[int, int]]): A list of intersections.
+            intersections (list[tuple[int, int]]): A list of intersections.
             ransac_iterations (int, optional): The number of RANSAC iterations
                 to perform. Default is 1000.
 
         Returns:
-            Optional[List[Tuple[int, int]]]: The estimated square vertices as a list
+            Optional[list[tuple[int, int]]]: The estimated square vertices as a list
                 of (x, y) coordinates, or None if no square is found.
         """
         best_square_vertices = None

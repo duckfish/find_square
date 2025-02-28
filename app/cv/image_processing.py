@@ -241,7 +241,7 @@ class SquareDetector(BaseImageProcessor):
 
         return img_dilated
 
-    def _get_lines_intersections(self, img: np.ndarray) -> list[tuple[int, int]]:
+    def _get_lines_intersections(self, img: np.ndarray) -> list[Point]:
         """Find intersections of lines detected in the input image.
 
         Args:
@@ -337,17 +337,16 @@ class SquareDetector(BaseImageProcessor):
         if detector == "RANSAC":
             vertices = np.array(vertices, np.int32)
             vertices = vertices.reshape((-1, 1, 2))
-            cv2.polylines(img_res, [vertices], True, self.COLOR_RESULT, 2)
+            cv2.polylines(img_res, [vertices], True, self.COLOR_RESULT, 2)  # type: ignore
         elif detector == "SquareNet":
             x1, y1, x2, y2 = vertices
-            cv2.rectangle(img_res, (x1, y1), (x2, y2), self.COLOR_RESULT, 2)
+            cv2.rectangle(img_res, (x1, y1), (x2, y2), self.COLOR_RESULT, 2)  # type: ignore
         return img_res
 
     def find_square(
         self, img: np.ndarray, ransac_iterations: int, detector: str
     ) -> tuple[np.ndarray | None, int]:
-        """Find a square in the input image and return a new image with
-        the square outlined.
+        """Find a square in the input image and return a new image with the square outlined.
 
         Args:
             img (np.ndarray): Input image as a NumPy array.
@@ -365,19 +364,19 @@ class SquareDetector(BaseImageProcessor):
         if detector == "RANSAC":
             img_cleaned = self._remove_noise(img)
             _, img_thr = cv2.threshold(img_cleaned, 128, 255, cv2.THRESH_BINARY)
-            verticies = self._get_square_vertices(img_thr, ransac_iterations)
+            vertices = self._get_square_vertices(img_thr, ransac_iterations)
         elif detector == "SquareNet":
             img_cleaned = self._remove_noise(img)
             img_preprocessed = self._preprocess_img_m(img_cleaned)
-            verticies = self.model.predict(img_preprocessed)
-            verticies = self._process_vertices_m(verticies)
+            vertices = self.model.predict(img_preprocessed)
+            vertices = self._process_vertices_m(vertices)
         t_stop = perf_counter()
         elapsed_time = int((t_stop - t_start) * 1000)  # ms
 
-        if not verticies:
+        if not vertices:
             return None, elapsed_time
 
-        img_res = self._draw_result(img, verticies, detector=detector)
+        img_res = self._draw_result(img, vertices, detector=detector)
         return img_res, elapsed_time
 
 
