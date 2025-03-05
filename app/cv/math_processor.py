@@ -5,7 +5,8 @@ from typing import Optional
 
 import cv2
 import numpy as np
-from models import Line, Point
+
+from .models import Line, Point
 
 
 class MathProcessor:
@@ -46,7 +47,7 @@ class MathProcessor:
         return quad
 
     def _perpendicular_lines(
-        self, line1: Line, line2: Line, tolerance: float = 0.5
+        self, line1: np.ndarray, line2: np.ndarray, tolerance: float = 0.5
     ) -> bool:
         """Check if two line segments are approximately perpendicular.
 
@@ -63,16 +64,18 @@ class MathProcessor:
         Returns:
             bool: True if the lines are approximately perpendicular, False otherwise.
         """
-        angle1 = np.arctan2(line1.y2 - line1.y1, line1.x2 - line1.x1)
-        angle2 = np.arctan2(line2.y2 - line2.y1, line2.x2 - line2.x1)
+        x1, x2, y1, y2 = line1
+        angle1 = math.atan2(y2 - y1, x2 - x1)
+        x1, x2, y1, y2 = line2
+        angle2 = math.atan2(y2 - y1, x2 - x1)
 
-        angle_diff = np.abs(angle1 - angle2)
+        angle_diff = abs(angle1 - angle2)
 
-        return np.abs(90 - np.degrees(angle_diff)) < tolerance
+        return abs(90 - math.degrees(angle_diff)) < tolerance
 
     def _calculate_intersection(
-        self, line1: Sequence[float], line2: Sequence[float]
-    ) -> Optional[tuple[int, int]]:
+        self, line1: np.ndarray, line2: np.ndarray
+    ) -> Point | None:
         """Calculate the intersection point of two line segments.
 
         Args:
@@ -106,7 +109,7 @@ class MathProcessor:
             ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / det
         )
 
-        return intersection_x, intersection_y
+        return Point(intersection_x, intersection_y)
 
     def find_intersections(
         self, lines: np.ndarray, width: int, height: int
@@ -125,16 +128,17 @@ class MathProcessor:
                 the intersection points between line segments, filtered to include
                 only points within the image canvas boundaries.
         """
+        lines = lines.squeeze(axis=1)
         intersections = []
-
         for i, line1 in enumerate(lines):
             for line2 in lines[i + 1 :]:
-                intersection = self._calculate_intersection(line1[0], line2[0])
-                if intersection is not None:
-                    x, y = intersection
-                    # filtering points inside image canvas
-                    if 0 <= x < width and 0 <= y < height:
-                        intersections.append(intersection)
+                intersection = self._calculate_intersection(line1, line2)
+                if (
+                    intersection is not None
+                    and 0 <= intersection.x < width
+                    and 0 <= intersection.y < height
+                ):
+                    intersections.append(intersection)
 
         return intersections
 

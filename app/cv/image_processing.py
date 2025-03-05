@@ -11,7 +11,8 @@ import keras.models
 import numpy as np
 from config import config
 from cv.math_processor import MathProcessor
-from models import Line, Point
+
+from .models import Line, Point
 
 
 @keras.saving.register_keras_serializable()
