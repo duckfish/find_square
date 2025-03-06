@@ -27,9 +27,7 @@ class MathProcessor:
             canvas.
     """
 
-    def _get_random_quad(
-        self, intersections: list[tuple[int, int]]
-    ) -> Optional[list[tuple[int, int]]]:
+    def _get_random_quad(self, intersections: list[Point]) -> list[Point] | None:
         """Generate a random quadrilateral (quad) by selecting one point from each set of points.
 
         Args:
@@ -178,7 +176,7 @@ class MathProcessor:
             math.isclose(reference_distance, dist, rel_tol=tolerance) for dist in sides
         )
 
-    def _is_square(self, quad: list[tuple[int, int]]) -> tuple[bool, float]:
+    def _is_square(self, quad: list[Point]) -> tuple[bool, float]:
         """Check if the given quadrilateral is a square and calculate the maximum error.
 
         Args:
@@ -273,7 +271,7 @@ class MathProcessor:
     def get_vertices_ransac(
         self,
         img: np.ndarray,
-        intersections: list[tuple[int, int]],
+        intersections: list[Point],
         ransac_iterations: int = 1000,
     ) -> Optional[list[tuple[int, int]]]:
         """Use the RANSAC algorithm to estimate the vertices of a square in the image.
