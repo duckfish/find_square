@@ -64,9 +64,9 @@ class MathProcessor:
         Returns:
             bool: True if the lines are approximately perpendicular, False otherwise.
         """
-        x1, x2, y1, y2 = line1
+        x1, y1, x2, y2 = line1
         angle1 = math.atan2(y2 - y1, x2 - x1)
-        x1, x2, y1, y2 = line2
+        x1, y1, x2, y2 = line2
         angle2 = math.atan2(y2 - y1, x2 - x1)
 
         angle_diff = abs(angle1 - angle2)
