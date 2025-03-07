@@ -1,6 +1,5 @@
 import base64
 import random
-from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
 from time import perf_counter
@@ -82,9 +81,9 @@ class ImageGenerator(BaseImageProcessor):
 
     ELEMENTS_COLOR = (0, 0, 0)
 
-    def __init__(self):
-        self.img_width = config.IMG_SIZE
-        self.img_height = config.IMG_SIZE
+    def __init__(self, img_size: tuple[int, int]) -> None:
+        self.img_width = img_size[0]
+        self.img_height = img_size[1]
 
     def _generate_random_lines(self, lines_numb: int) -> list[Line]:
         """Generate random lines with specified parameters within the image boundaries.
@@ -213,10 +212,11 @@ class SquareDetector(BaseImageProcessor):
 
     COLOR_RESULT = (0, 92, 250)
 
-    def __init__(self) -> None:
+    def __init__(self, img_size: int, model_path: str) -> None:
         super().__init__()
+        self.img_size = img_size
         self.math_processor = MathProcessor()
-        self.model = keras.models.load_model(config.MODEL_PATH)
+        self.model = keras.models.load_model(model_path)
 
     def _remove_noise(
         self, img: np.ndarray, median_kernel_size: int = 3, morph_kernel_size: int = 5
@@ -249,7 +249,7 @@ class SquareDetector(BaseImageProcessor):
             img (np.ndarray): Input image as a NumPy array.
 
         Returns:
-            List[Tuple[int, int]]: A list of tuples containing (x, y) coordinates
+            List[Point]: A list of tuples containing (x, y) coordinates
             of intersections.
         """
         img_canny = cv2.Canny(img, 50, 150, apertureSize=3)
@@ -264,17 +264,15 @@ class SquareDetector(BaseImageProcessor):
 
     def _get_square_vertices(
         self, img: np.ndarray, ransac_iterations: int
-    ) -> list[tuple[int, int]]:
-        """Get the vertices of the square region of interest (ROI) in the image.
+    ) -> list[Point] | None:
+        """Gets the vertices of the black square using RANSAC approach.
 
         Args:
-            img (np.ndarray): The input grayscale image.
-            img_res (np.ndarray): The result image where vertices will be marked.
+            img: The input grayscale image.
+            ransac_iterations: The number of RANSAC iterations.
 
         Returns:
-            tuple: A tuple containing two elements:
-                1. list: List of four vertices of the square ROI.
-                2. np.ndarray: The result image with vertices marked.
+            A list of four vertices of the black square or None if not found.
         """
         intersections = self._get_lines_intersections(img)
         square_vertices = self.math_processor.get_vertices_ransac(
@@ -295,31 +293,15 @@ class SquareDetector(BaseImageProcessor):
             np.ndarray: Preprocessed image ready to be fed into the SquareNet model.
         """
         target_img_size = self.model.layers[0].input_shape[1:3]
-        img = cv2.resize(img, target_img_size, cv2.INTER_AREA)
+        img = cv2.resize(img, target_img_size, cv2.INTER_AREA)  # type: ignore
         img = np.expand_dims(
             img, axis=-1
         )  # Add an extra dimension for grayscale channel
-        img = [img]
-        img = np.array(img, dtype="float32") / 255.0
+        img = np.array([img], dtype="float32") / 255.0
         return img
 
-    def _process_vertices_m(self, vertices: np.ndarray) -> list[int]:
-        """Convert normalized coordinates to original values.
-
-        Args:
-            vertices (np.ndarray): Normalized coordinates of the detected vertices
-                provided as a NumPy array.
-
-        Returns:
-            List[int]: Original coordinates of the vertices as a list of integers.
-                The coordinates are transformed from normalized values back to their
-                original scale based on the provided IMG_SIZE configuration.
-        """
-        vertices = map(int, vertices[0] * config.IMG_SIZE)
-        return vertices
-
     def _draw_result(
-        self, img: np.ndarray, vertices: Sequence[tuple[int, int]], detector: str
+        self, img: np.ndarray, vertices: list[Point] | np.ndarray
     ) -> np.ndarray:
         """Draw the result on the input image by marking the detected vertices.
 
@@ -335,11 +317,12 @@ class SquareDetector(BaseImageProcessor):
             np.ndarray: Image result.
         """
         img_res = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-        if detector == "RANSAC":
+        if isinstance(vertices, list):
             vertices = np.array(vertices, np.int32)
             vertices = vertices.reshape((-1, 1, 2))
             cv2.polylines(img_res, [vertices], True, self.COLOR_RESULT, 2)  # type: ignore
-        elif detector == "SquareNet":
+        elif isinstance(vertices, np.ndarray):
+            vertices = map(round, vertices * self.img_size)  # type: ignore
             x1, y1, x2, y2 = vertices
             cv2.rectangle(img_res, (x1, y1), (x2, y2), self.COLOR_RESULT, 2)  # type: ignore
         return img_res
@@ -369,17 +352,16 @@ class SquareDetector(BaseImageProcessor):
         elif detector == "SquareNet":
             img_cleaned = self._remove_noise(img)
             img_preprocessed = self._preprocess_img_m(img_cleaned)
-            vertices = self.model.predict(img_preprocessed)
-            vertices = self._process_vertices_m(vertices)
+            vertices = self.model.predict(img_preprocessed)[0]
         t_stop = perf_counter()
         elapsed_time = int((t_stop - t_start) * 1000)  # ms
 
-        if not vertices:
+        if vertices is None:
             return None, elapsed_time
 
-        img_res = self._draw_result(img, vertices, detector=detector)
+        img_res = self._draw_result(img, vertices)
         return img_res, elapsed_time
 
 
-image_generator = ImageGenerator()
-square_detector = SquareDetector()
+image_generator = ImageGenerator(img_size=(config.IMG_SIZE, config.IMG_SIZE))
+square_detector = SquareDetector(img_size=config.IMG_SIZE, model_path=config.MODEL_PATH)

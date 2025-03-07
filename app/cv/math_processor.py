@@ -1,12 +1,11 @@
 import math
 import random
 from collections.abc import Sequence
-from typing import Optional
 
 import cv2
 import numpy as np
 
-from .models import Line, Point
+from .models import Point
 
 
 class MathProcessor:
@@ -205,7 +204,7 @@ class MathProcessor:
 
         return self._equal_sides(distances), error_max
 
-    def _sort_quad(self, quad: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    def _sort_quad(self, quad: list[Point]) -> list[Point]:
         """Sort the vertices of a quadrilateral in a clockwise (CW) order.
 
         Args:
@@ -222,7 +221,7 @@ class MathProcessor:
         )
         return quad_sorted
 
-    def _mask_image(self, img: np.ndarray, quad: list[tuple[int, int]]) -> np.ndarray:
+    def _mask_image(self, img: np.ndarray, quad: list[Point]) -> np.ndarray:
         """Apply a mask to an image, masking out a specified quadrilateral region.
 
         Args:
@@ -240,7 +239,7 @@ class MathProcessor:
         return img_masked
 
     def _count_black_pixels(
-        self, quad: list[tuple[int, int]], img: np.ndarray
+        self, quad: list[Point], img: np.ndarray
     ) -> tuple[bool, int]:
         """Count the number of black pixels within a quadrilateral region of an image.
 
@@ -273,7 +272,7 @@ class MathProcessor:
         img: np.ndarray,
         intersections: list[Point],
         ransac_iterations: int = 1000,
-    ) -> Optional[list[tuple[int, int]]]:
+    ) -> list[Point] | None:
         """Use the RANSAC algorithm to estimate the vertices of a square in the image.
 
         Args:
