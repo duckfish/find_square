@@ -41,7 +41,7 @@ generateButton.addEventListener("click", async () => {
     lines_thickness: lineThicknessInput.value,
   };
 
-  const response = await fetch("/generate-image", {
+  const response = await fetch("image/generate", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -80,7 +80,7 @@ findButton.addEventListener("click", async () => {
     dots = (dots + 1) % 10;
   }, 300);
 
-  const response = await fetch("/find-square", {
+  const response = await fetch("image/find-square", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

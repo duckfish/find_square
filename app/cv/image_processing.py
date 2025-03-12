@@ -92,9 +92,7 @@ class ImageGenerator(BaseImageProcessor):
             lines_numb (int): The number of random lines to generate.
 
         Returns:
-            List[Tuple[Tuple[int, int]]]: A list of tuples, each containing two tuples
-            representing the coordinates of the start and end points of
-            a randomly generated line segment.
+            List[Line]: A list of lines, represented by coordinates of the start and end points.
         """
         lines = []
         for _ in range(lines_numb):
@@ -118,7 +116,7 @@ class ImageGenerator(BaseImageProcessor):
             square_size (int): The size of the square's sides.
 
         Returns:
-            Tuple[Tuple[int, int]]: A tuple containing two points representing
+            Tuple[Point, Point]: A tuple containing two points representing
             the top-left and bottom-right corners of the randomly positioned square.
         """
         shift = int(square_size * 1.2)  # A square to be within image canvas
@@ -262,9 +260,7 @@ class SquareDetector(BaseImageProcessor):
 
         return intersections
 
-    def _get_square_vertices(
-        self, img: np.ndarray, ransac_iterations: int
-    ) -> list[Point] | None:
+    def _get_square_vertices(self, img: np.ndarray, ransac_iterations: int) -> list[Point] | None:
         """Gets the vertices of the black square using RANSAC approach.
 
         Args:
@@ -294,20 +290,16 @@ class SquareDetector(BaseImageProcessor):
         """
         target_img_size = self.model.layers[0].input_shape[1:3]
         img = cv2.resize(img, target_img_size, cv2.INTER_AREA)  # type: ignore
-        img = np.expand_dims(
-            img, axis=-1
-        )  # Add an extra dimension for grayscale channel
+        img = np.expand_dims(img, axis=-1)  # Add an extra dimension for grayscale channel
         img = np.array([img], dtype="float32") / 255.0
         return img
 
-    def _draw_result(
-        self, img: np.ndarray, vertices: list[Point] | np.ndarray
-    ) -> np.ndarray:
+    def _draw_result(self, img: np.ndarray, vertices: list[Point] | np.ndarray) -> np.ndarray:
         """Draw the result on the input image by marking the detected vertices.
 
         Args:
             img (np.ndarray): Input image as a NumPy array.
-            vertices (Sequence[Tuple[int, int]]): A sequence of (x, y) coordinates
+            vertices (list[Point] | np.ndarray): A sequence of (x, y) coordinates
             of vertices.
             detector (str): The detector used to identify the shape.
                 Options: "RANSAC" for RANSAC-based detection or "SquareNet" for a neural
@@ -341,8 +333,8 @@ class SquareDetector(BaseImageProcessor):
                 a neural network-based detector.
 
         Returns:
-            Tuple[Optional[np.ndarray], int]: A tuple containing the resulting image
-            with the square outlined and the elapsed time in milliseconds.
+            tuple[np.ndarray | None, int]: A tuple containing the resulting image
+            with the square outlined or None and the elapsed time in milliseconds.
         """
         t_start = perf_counter()
         if detector == "RANSAC":

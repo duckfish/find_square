@@ -12,7 +12,7 @@ router = APIRouter(tags=["main"])
 
 
 @router.post(
-    "/generate-image",
+    "/image/generate",
     summary="Generate an image",
     description="Generate an image with following params: square size, lines number,\
     line thickness",
@@ -52,10 +52,10 @@ async def generate_image(
 
 
 @router.post(
-    "/find-square",
+    "/image/find-square",
     summary="Find square",
 )
-async def test_image(
+async def find_square(
     request: Request,
     image_find: ImageFindRequest,
     session: Session = Depends(get_session),
@@ -66,9 +66,7 @@ async def test_image(
         raise HTTPException(status_code=404, detail="No image found for this session")
 
     with session:
-        statement = select(SquareDetection).where(
-            SquareDetection.request_id == request_id
-        )
+        statement = select(SquareDetection).where(SquareDetection.request_id == request_id)
         square_detection = session.exec(statement).one()
         img_path = square_detection.img_path
 

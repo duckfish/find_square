@@ -50,9 +50,7 @@ class MathProcessor:
 
         return abs(90 - math.degrees(angle_diff)) < tolerance
 
-    def _calculate_intersection(
-        self, line1: np.ndarray, line2: np.ndarray
-    ) -> Point | None:
+    def _calculate_intersection(self, line1: np.ndarray, line2: np.ndarray) -> Point | None:
         """Calculate the intersection point of two lines.
 
         Args:
@@ -84,9 +82,7 @@ class MathProcessor:
 
         return Point(intersection_x, intersection_y)
 
-    def find_intersections(
-        self, lines: np.ndarray, width: int, height: int
-    ) -> list[Point]:
+    def find_intersections(self, lines: np.ndarray, width: int, height: int) -> list[Point]:
         """Find intersections between lines and filter points within the image canvas.
 
         Args:
@@ -128,9 +124,7 @@ class MathProcessor:
             tolerance, False otherwise.
         """
         reference_distance = np.mean(sides)
-        return all(
-            math.isclose(reference_distance, dist, rel_tol=tolerance) for dist in sides
-        )
+        return all(math.isclose(reference_distance, dist, rel_tol=tolerance) for dist in sides)
 
     def _is_square(self, quad: list[Point]) -> tuple[bool, float]:
         """Check if the given quadrilateral is a square and calculate the maximum error.
@@ -174,9 +168,7 @@ class MathProcessor:
                 in clockwise order.
         """
         centroid = np.mean(quad, axis=0)
-        quad_sorted = sorted(
-            quad, key=lambda p: np.arctan2(p[1] - centroid[1], p[0] - centroid[0])
-        )
+        quad_sorted = sorted(quad, key=lambda p: np.arctan2(p[1] - centroid[1], p[0] - centroid[0]))
         return quad_sorted
 
     def _mask_image(self, img: np.ndarray, quad: list[Point]) -> np.ndarray:
@@ -196,9 +188,7 @@ class MathProcessor:
         img_masked = cv2.bitwise_or(img, mask)
         return img_masked
 
-    def _count_black_pixels(
-        self, quad: list[Point], img: np.ndarray
-    ) -> tuple[bool, int]:
+    def _count_black_pixels(self, quad: list[Point], img: np.ndarray) -> tuple[bool, int]:
         """Count the number of black pixels within a quadrilateral region of an image.
 
         Args:
